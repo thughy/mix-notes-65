@@ -1,12 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import RecentMixes from '@/components/RecentMixes';
 import MixDetail from '@/components/MixDetail';
-import ProgressChart from '@/components/ProgressChart';
 import { useMixStore } from '@/utils/mixStore';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -14,8 +12,6 @@ const Index = () => {
   const navigate = useNavigate();
   const { state, deleteMix, setActiveMix } = useMixStore();
   const isMobile = useIsMobile();
-  const [showChart, setShowChart] = useState(false);
-  const [animationClass, setAnimationClass] = useState('');
   
   // Set the first mix as active if none is selected and there are mixes available
   useEffect(() => {
@@ -35,15 +31,6 @@ const Index = () => {
       const newActiveId = state.mixes.find(mix => mix.id !== id)?.id;
       if (newActiveId) setActiveMix(newActiveId);
     }
-  };
-  
-  // Handle toggling between mix detail and chart views on mobile
-  const toggleView = () => {
-    setAnimationClass('animate-fade-out');
-    setTimeout(() => {
-      setShowChart(!showChart);
-      setAnimationClass('animate-fade-in');
-    }, 200);
   };
   
   return (
@@ -67,47 +54,28 @@ const Index = () => {
             </Button>
           </div>
         ) : isMobile ? (
-          // Mobile view with toggle between mix list/detail and chart
+          // Mobile view with mix list/detail only
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-slate-800">
-                {showChart ? 'Progress Tracker' : 'Mix Entries'}
+                Mix Entries
               </h2>
-              <Button variant="outline" size="sm" onClick={toggleView}>
-                {showChart ? (
-                  <>
-                    <ChevronLeft className="mr-1 h-4 w-4" />
-                    View Mixes
-                  </>
-                ) : (
-                  <>
-                    View Progress
-                    <ChevronRight className="ml-1 h-4 w-4" />
-                  </>
-                )}
-              </Button>
             </div>
             
-            <div className={animationClass}>
-              {showChart ? (
-                <ProgressChart mixes={state.mixes} />
-              ) : (
-                <>
-                  <RecentMixes
-                    mixes={state.mixes}
-                    onSelectMix={setActiveMix}
-                    selectedMixId={state.activeMixId}
+            <div>
+              <RecentMixes
+                mixes={state.mixes}
+                onSelectMix={setActiveMix}
+                selectedMixId={state.activeMixId}
+              />
+              
+              {activeMix && (
+                <div className="mt-6">
+                  <MixDetail
+                    mix={activeMix}
+                    onDelete={handleDeleteMix}
                   />
-                  
-                  {activeMix && (
-                    <div className="mt-6">
-                      <MixDetail
-                        mix={activeMix}
-                        onDelete={handleDeleteMix}
-                      />
-                    </div>
-                  )}
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -122,15 +90,13 @@ const Index = () => {
               />
             </div>
             
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2">
               {activeMix && (
                 <MixDetail
                   mix={activeMix}
                   onDelete={handleDeleteMix}
                 />
               )}
-              
-              <ProgressChart mixes={state.mixes} />
             </div>
           </div>
         )}

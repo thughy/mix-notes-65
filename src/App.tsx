@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NewMixEntry from "./pages/NewMixEntry";
 import EditMixEntry from "./pages/EditMixEntry";
-import ProgressPage from "./pages/ProgressPage";
+import CompareMixes from "./pages/CompareMixes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,7 +22,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/new" element={<NewMixEntry />} />
           <Route path="/edit/:id" element={<EditMixEntry />} />
-          <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/progress" element={<CompareMixes />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

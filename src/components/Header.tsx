@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, BarChart, SlidersVertical, Settings, ChevronRight, Home, Plus } from 'lucide-react';
+import { Menu, X, BarChart, SlidersVertical, Settings, ChevronRight, Home, Plus, GitCompare } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 
@@ -76,20 +76,12 @@ const Header = () => {
                   <span>Home</span>
                 </Link>
                 <Link 
-                  to="/new" 
-                  className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <SlidersVertical className="h-5 w-5 text-blue-600" />
-                  <span>New Mix Entry</span>
-                </Link>
-                <Link 
                   to="/progress" 
                   className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <BarChart className="h-5 w-5 text-blue-600" />
-                  <span>Progress Tracker</span>
+                  <GitCompare className="h-5 w-5 text-blue-600" />
+                  <span>Compare Mixes</span>
                 </Link>
                 <Link 
                   to="/settings" 
@@ -111,16 +103,10 @@ const Header = () => {
               Home
             </Link>
             <Link 
-              to="/new" 
-              className="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-            >
-              New Mix Entry
-            </Link>
-            <Link 
               to="/progress" 
               className="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
             >
-              Progress Tracker
+              Compare Mixes
             </Link>
             <Button variant="default" className="ml-2" size="sm" onClick={() => navigate('/new')}>
               <Plus className="mr-1 h-4 w-4" />
