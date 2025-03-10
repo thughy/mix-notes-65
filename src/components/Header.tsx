@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, BarChart, SlidersVertical, Settings, ChevronRight, Home, Plus, GitCompare } from 'lucide-react';
+import { Menu, X, SlidersVertical, Settings, Home, Plus, GitCompare } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 
@@ -50,7 +50,17 @@ const Header = () => {
         </Link>
         
         {isMobile ? (
-          <>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={() => navigate('/new')}
+              className="mr-2"
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              <span>New Mix</span>
+            </Button>
+            
             <Button
               id="menu-toggle"
               variant="ghost" 
@@ -93,7 +103,7 @@ const Header = () => {
                 </Link>
               </div>
             )}
-          </>
+          </div>
         ) : (
           <nav className="flex items-center gap-1">
             <Link 
