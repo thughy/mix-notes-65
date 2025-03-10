@@ -38,9 +38,7 @@ const Index = () => {
       <Header />
       
       <main className="pt-24 pb-16 px-4 container mx-auto">
-        <div className="flex items-center mb-6">
-          <h1 className="text-3xl font-bold text-slate-800">Mix Notes</h1>
-        </div>
+        {/* Removed the "Mix Notes" h1 heading that was here */}
         
         {state.mixes.length === 0 ? (
           <div className="bg-white rounded-lg shadow-soft border border-slate-200 p-8 text-center">
