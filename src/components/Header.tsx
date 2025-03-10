@@ -45,7 +45,7 @@ const Header = () => {
           onClick={() => setIsMenuOpen(false)}
         >
           <Music className="h-6 w-6" />
-          <span className="font-bold">MixLogger</span>
+          <span className="font-bold">Mix Notes</span>
         </Link>
         
         {isMobile ? (
@@ -121,7 +121,7 @@ const Header = () => {
             >
               Progress Tracker
             </Link>
-            <Button variant="default" className="ml-2" size="sm">
+            <Button variant="default" className="ml-2" size="sm" as={Link} to="/new">
               <span>Create Mix Log</span>
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>

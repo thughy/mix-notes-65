@@ -55,7 +55,7 @@ const Index = () => {
       
       <main className="pt-24 pb-16 px-4 container mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-slate-800">Mix Logger</h1>
+          <h1 className="text-3xl font-bold text-slate-800">Mix Notes</h1>
           <Button onClick={() => navigate('/new')}>
             <Plus className="mr-1 h-4 w-4" />
             New Mix
@@ -64,7 +64,7 @@ const Index = () => {
         
         {state.mixes.length === 0 ? (
           <div className="bg-white rounded-lg shadow-soft border border-slate-200 p-8 text-center">
-            <h2 className="text-2xl font-semibold mb-4">Welcome to Mix Logger</h2>
+            <h2 className="text-2xl font-semibold mb-4">Welcome to Mix Notes</h2>
             <p className="text-slate-600 mb-6 max-w-lg mx-auto">
               Start tracking your sound engineering progress by creating your first mix entry.
               Log your thoughts, track ratings, and see your improvement over time.
@@ -146,7 +146,7 @@ const Index = () => {
       
       <footer className="py-6 border-t border-slate-200 bg-white">
         <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
-          Mix Logger • Keep track of your sound engineering progress
+          Mix Notes • Keep track of your sound engineering progress
         </div>
       </footer>
     </div>
