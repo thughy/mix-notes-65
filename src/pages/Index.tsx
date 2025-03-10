@@ -1,12 +1,154 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, BarChart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { Button } from '@/components/ui/button';
+import Header from '@/components/Header';
+import RecentMixes from '@/components/RecentMixes';
+import MixDetail from '@/components/MixDetail';
+import ProgressChart from '@/components/ProgressChart';
+import { useMixStore } from '@/utils/mixStore';
+import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { MixEntry } from '@/types';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { state, deleteMix, setActiveMix } = useMixStore();
+  const isMobile = useIsMobile();
+  const [showChart, setShowChart] = useState(false);
+  const [animationClass, setAnimationClass] = useState('');
+  
+  // Set the first mix as active if none is selected and there are mixes available
+  useEffect(() => {
+    if (state.mixes.length > 0 && !state.activeMixId) {
+      setActiveMix(state.mixes[0].id);
+    }
+  }, [state.mixes, state.activeMixId, setActiveMix]);
+  
+  // Get the active mix
+  const activeMix = state.mixes.find(mix => mix.id === state.activeMixId);
+  
+  // Handle deleting a mix
+  const handleDeleteMix = (id: string) => {
+    deleteMix(id);
+    if (state.mixes.length > 1) {
+      // Set another mix as active
+      const newActiveId = state.mixes.find(mix => mix.id !== id)?.id;
+      if (newActiveId) setActiveMix(newActiveId);
+    }
+  };
+  
+  // Handle toggling between mix detail and chart views on mobile
+  const toggleView = () => {
+    setAnimationClass('animate-fade-out');
+    setTimeout(() => {
+      setShowChart(!showChart);
+      setAnimationClass('animate-fade-in');
+    }, 200);
+  };
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-slate-50">
+      <Header />
+      
+      <main className="pt-24 pb-16 px-4 container mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-slate-800">Mix Logger</h1>
+          <Button onClick={() => navigate('/new')}>
+            <Plus className="mr-1 h-4 w-4" />
+            New Mix
+          </Button>
+        </div>
+        
+        {state.mixes.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-soft border border-slate-200 p-8 text-center">
+            <h2 className="text-2xl font-semibold mb-4">Welcome to Mix Logger</h2>
+            <p className="text-slate-600 mb-6 max-w-lg mx-auto">
+              Start tracking your sound engineering progress by creating your first mix entry.
+              Log your thoughts, track ratings, and see your improvement over time.
+            </p>
+            <Button size="lg" onClick={() => navigate('/new')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Your First Mix Entry
+            </Button>
+          </div>
+        ) : isMobile ? (
+          // Mobile view with toggle between mix list/detail and chart
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-slate-800">
+                {showChart ? 'Progress Tracker' : 'Mix Entries'}
+              </h2>
+              <Button variant="outline" size="sm" onClick={toggleView}>
+                {showChart ? (
+                  <>
+                    <ChevronLeft className="mr-1 h-4 w-4" />
+                    View Mixes
+                  </>
+                ) : (
+                  <>
+                    View Progress
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            <div className={animationClass}>
+              {showChart ? (
+                <ProgressChart mixes={state.mixes} />
+              ) : (
+                <>
+                  <RecentMixes
+                    mixes={state.mixes}
+                    onSelectMix={setActiveMix}
+                    selectedMixId={state.activeMixId}
+                  />
+                  
+                  {activeMix && (
+                    <div className="mt-6">
+                      <MixDetail
+                        mix={activeMix}
+                        onDelete={handleDeleteMix}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        ) : (
+          // Desktop view with side-by-side layout
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <RecentMixes
+                mixes={state.mixes}
+                onSelectMix={setActiveMix}
+                selectedMixId={state.activeMixId}
+              />
+            </div>
+            
+            <div className="lg:col-span-2 space-y-6">
+              {activeMix && (
+                <MixDetail
+                  mix={activeMix}
+                  onDelete={handleDeleteMix}
+                />
+              )}
+              
+              <ProgressChart mixes={state.mixes} />
+            </div>
+          </div>
+        )}
+      </main>
+      
+      <footer className="py-6 border-t border-slate-200 bg-white">
+        <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
+          Mix Logger • Keep track of your sound engineering progress
+        </div>
+      </footer>
     </div>
   );
 };
