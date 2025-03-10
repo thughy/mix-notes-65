@@ -35,7 +35,7 @@ const ProgressPage = () => {
       
       <footer className="py-6 border-t border-slate-200 bg-white">
         <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
-          Mix Notes • Keep track of your sound engineering progress
+          Mix Notes by Worship Sound Guy
         </div>
       </footer>
     </div>
