@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,11 +7,13 @@ import RecentMixes from '@/components/RecentMixes';
 import MixDetail from '@/components/MixDetail';
 import { useMixStore } from '@/utils/mixStore';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUser } from '@clerk/clerk-react';
 
 const Index = () => {
   const navigate = useNavigate();
   const { state, deleteMix, setActiveMix } = useMixStore();
   const isMobile = useIsMobile();
+  const { isSignedIn, user } = useUser();
   
   useEffect(() => {
     if (state.mixes.length > 0 && !state.activeMixId) {
@@ -33,9 +36,24 @@ const Index = () => {
       <Header />
       
       <main className="pt-24 pb-16 px-4 container mx-auto">
-        {state.mixes.length === 0 ? (
+        {!isSignedIn ? (
           <div className="bg-white rounded-lg shadow-soft border border-slate-200 p-8 text-center">
             <h2 className="text-2xl font-semibold mb-4">Welcome to Mix Notes</h2>
+            <p className="text-slate-600 mb-6 max-w-lg mx-auto">
+              Please sign in to access your mix entries or create a new account.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button size="lg" onClick={() => navigate('/login')}>
+                Sign In
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => navigate('/register')}>
+                Create Account
+              </Button>
+            </div>
+          </div>
+        ) : state.mixes.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-soft border border-slate-200 p-8 text-center">
+            <h2 className="text-2xl font-semibold mb-4">Welcome to Mix Notes, {user?.firstName || user?.primaryEmailAddress?.emailAddress.split('@')[0]}</h2>
             <p className="text-slate-600 mb-6 max-w-lg mx-auto">
               Start tracking your sound engineering progress by creating your first mix entry.
               Log your thoughts, track ratings, and see your improvement over time.

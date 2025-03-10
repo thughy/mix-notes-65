@@ -2,8 +2,9 @@
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { MixEntry, MixStoreState } from '@/types';
+import { useUser } from '@clerk/clerk-react';
 
-// Mock data for initial state
+// Mock data for initial state (only used when no localStorage data exists)
 const initialMixes: MixEntry[] = [
   {
     id: uuidv4(),
@@ -57,31 +58,66 @@ const initialMixes: MixEntry[] = [
   }
 ];
 
-// Local storage key
-const LOCAL_STORAGE_KEY = 'sound_engineer_mix_logs';
-
 // Create a hook for managing mix data
 export const useMixStore = () => {
+  const { user, isSignedIn } = useUser();
+  const userId = user?.id;
+  
+  // Local storage key with user ID for user-specific data
+  const getStorageKey = () => {
+    return isSignedIn && userId 
+      ? `sound_engineer_mix_logs_${userId}` 
+      : 'sound_engineer_mix_logs';
+  };
+
   // Initialize state from localStorage or with default data
   const [state, setState] = useState<MixStoreState>(() => {
     try {
-      const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      return storedData ? JSON.parse(storedData) : { mixes: initialMixes, activeMixId: null };
+      if (isSignedIn && userId) {
+        const storageKey = getStorageKey();
+        const storedData = localStorage.getItem(storageKey);
+        return storedData ? JSON.parse(storedData) : { mixes: initialMixes, activeMixId: null };
+      }
+      return { mixes: [], activeMixId: null };
     } catch (error) {
       console.error('Error loading data from localStorage:', error);
-      return { mixes: initialMixes, activeMixId: null };
+      return { mixes: isSignedIn ? initialMixes : [], activeMixId: null };
     }
   });
 
   // Persist state to localStorage whenever it changes
   useEffect(() => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-      console.log('Saved to localStorage:', state);
+      if (isSignedIn && userId) {
+        const storageKey = getStorageKey();
+        localStorage.setItem(storageKey, JSON.stringify(state));
+        console.log('Saved to localStorage:', state);
+      }
     } catch (error) {
       console.error('Error saving data to localStorage:', error);
     }
-  }, [state]);
+  }, [state, isSignedIn, userId]);
+
+  // Reload data when user changes
+  useEffect(() => {
+    if (isSignedIn && userId) {
+      try {
+        const storageKey = getStorageKey();
+        const storedData = localStorage.getItem(storageKey);
+        if (storedData) {
+          setState(JSON.parse(storedData));
+        } else if (state.mixes.length === 0) {
+          // Only use initial data if there's no data for this user
+          setState({ mixes: initialMixes, activeMixId: null });
+        }
+      } catch (error) {
+        console.error('Error loading user data from localStorage:', error);
+      }
+    } else {
+      // Not signed in, show empty state
+      setState({ mixes: [], activeMixId: null });
+    }
+  }, [isSignedIn, userId]);
 
   // Actions for managing mixes
   const addMix = (mix: Omit<MixEntry, 'id' | 'createdAt' | 'updatedAt'>) => {

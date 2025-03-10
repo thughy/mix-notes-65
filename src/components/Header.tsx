@@ -1,15 +1,18 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, SlidersVertical, Settings, Home, Plus, GitCompare } from 'lucide-react';
+import { Menu, X, SlidersVertical, Settings, Home, Plus, GitCompare, LogOut } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
+import { useUser, useClerk } from '@clerk/clerk-react';
 
 const Header = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,6 +36,11 @@ const Header = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [isMenuOpen]);
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
   return (
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -51,15 +59,17 @@ const Header = () => {
         
         {isMobile ? (
           <div className="flex items-center gap-2">
-            <Button 
-              variant="default" 
-              size="sm"
-              onClick={() => navigate('/new')}
-              className="mr-2"
-            >
-              <Plus className="mr-1 h-4 w-4" />
-              <span>New Mix</span>
-            </Button>
+            {isSignedIn && (
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={() => navigate('/new')}
+                className="mr-2"
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                <span>New Mix</span>
+              </Button>
+            )}
             
             <Button
               id="menu-toggle"
@@ -85,22 +95,45 @@ const Header = () => {
                   <Home className="h-5 w-5 text-blue-600" />
                   <span>Home</span>
                 </Link>
-                <Link 
-                  to="/progress" 
-                  className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <GitCompare className="h-5 w-5 text-blue-600" />
-                  <span>Compare Mixes</span>
-                </Link>
-                <Link 
-                  to="/settings" 
-                  className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Settings className="h-5 w-5 text-blue-600" />
-                  <span>Settings</span>
-                </Link>
+                
+                {isSignedIn ? (
+                  <>
+                    <Link 
+                      to="/progress" 
+                      className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <GitCompare className="h-5 w-5 text-blue-600" />
+                      <span>Compare Mixes</span>
+                    </Link>
+                    <Link 
+                      to="/settings" 
+                      className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Settings className="h-5 w-5 text-blue-600" />
+                      <span>Settings</span>
+                    </Link>
+                    <button 
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleSignOut();
+                      }}
+                      className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs text-left"
+                    >
+                      <LogOut className="h-5 w-5 text-blue-600" />
+                      <span>Sign Out</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link 
+                    to="/login" 
+                    className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span>Log In</span>
+                  </Link>
+                )}
               </div>
             )}
           </div>
@@ -112,16 +145,37 @@ const Header = () => {
             >
               Home
             </Link>
-            <Link 
-              to="/progress" 
-              className="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-            >
-              Compare Mixes
-            </Link>
-            <Button variant="default" className="ml-2" size="sm" onClick={() => navigate('/new')}>
-              <Plus className="mr-1 h-4 w-4" />
-              <span>New Mix</span>
-            </Button>
+            
+            {isSignedIn ? (
+              <>
+                <Link 
+                  to="/progress" 
+                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                >
+                  Compare Mixes
+                </Link>
+                <Button variant="default" className="ml-2" size="sm" onClick={() => navigate('/new')}>
+                  <Plus className="mr-1 h-4 w-4" />
+                  <span>New Mix</span>
+                </Button>
+                <Button variant="ghost" className="ml-1" size="sm" onClick={handleSignOut}>
+                  <LogOut className="mr-1 h-4 w-4" />
+                  <span>Sign Out</span>
+                </Button>
+                <div className="ml-2 px-3 py-1 font-medium text-sm rounded-full bg-blue-100 text-blue-700">
+                  {user?.primaryEmailAddress?.emailAddress.split('@')[0]}
+                </div>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                  Log In
+                </Link>
+                <Link to="/register" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </nav>
         )}
       </div>
