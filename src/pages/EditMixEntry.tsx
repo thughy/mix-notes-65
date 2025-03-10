@@ -65,10 +65,8 @@ const EditMixEntry = () => {
         
         // Handle YouTube URL
         if (mix.youtubeUrl) {
-          // Try to extract the original YouTube URL from the embed URL
-          const embedUrl = mix.youtubeUrl;
-          setYoutubeUrl(embedUrl);
-          setPreviewYoutubeUrl(embedUrl);
+          setYoutubeUrl(mix.youtubeUrl);
+          setPreviewYoutubeUrl(mix.youtubeUrl);
         }
       } else {
         toast.error('Mix not found');
@@ -95,6 +93,13 @@ const EditMixEntry = () => {
   };
 
   const getYoutubeEmbedUrl = (url: string) => {
+    if (!url) return '';
+    
+    // If URL already has 'embed', return it
+    if (url.includes('embed')) {
+      return url;
+    }
+    
     // Extract video ID from various YouTube URL formats
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
@@ -103,7 +108,6 @@ const EditMixEntry = () => {
       return `https://www.youtube.com/embed/${match[2]}`;
     }
     
-    // If no match, return the original URL (will likely not work as an embed)
     return url;
   };
 

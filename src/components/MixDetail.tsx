@@ -59,6 +59,26 @@ const MixDetail = ({ mix, onDelete }: MixDetailProps) => {
     }
   };
 
+  // Process YouTube URL to ensure it works properly
+  const getProcessedYoutubeUrl = (url: string | undefined) => {
+    if (!url) return '';
+    
+    // If URL already has 'embed', ensure correct format
+    if (url.includes('embed')) {
+      return url;
+    }
+    
+    // Extract video ID from various YouTube URL formats
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/embed/${match[2]}`;
+    }
+    
+    return url;
+  };
+
   return (
     <Card className="shadow-soft border border-slate-200 bg-white animate-scale-in">
       <CardHeader className="pb-2">
@@ -246,10 +266,10 @@ const MixDetail = ({ mix, onDelete }: MixDetailProps) => {
                 <iframe 
                   width="100%" 
                   height="100%"
-                  src={mix.youtubeUrl}
+                  src={getProcessedYoutubeUrl(mix.youtubeUrl)}
                   title="YouTube video player"
                   frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowFullScreen
                 ></iframe>
               </div>

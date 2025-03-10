@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -60,6 +61,13 @@ const NewMixEntry = () => {
   };
 
   const getYoutubeEmbedUrl = (url: string) => {
+    if (!url) return '';
+    
+    // If URL already has 'embed', return it
+    if (url.includes('embed')) {
+      return url;
+    }
+    
     // Extract video ID from various YouTube URL formats
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
@@ -68,7 +76,6 @@ const NewMixEntry = () => {
       return `https://www.youtube.com/embed/${match[2]}`;
     }
     
-    // If no match, return the original URL (will likely not work as an embed)
     return url;
   };
 
