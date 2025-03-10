@@ -127,6 +127,15 @@ const MixDetail = ({ mix, onDelete }: MixDetailProps) => {
               <Headphones className="h-4 w-4 mr-1" />
               In-Ear Mix
             </TabsTrigger>
+            {mix.audioSrc && (
+              <TabsTrigger 
+                value="audio" 
+                className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 transition-all"
+              >
+                <Music className="h-4 w-4 mr-1" />
+                Audio
+              </TabsTrigger>
+            )}
           </TabsList>
           
           <TabsContent value="general" className="p-6">
@@ -197,13 +206,34 @@ const MixDetail = ({ mix, onDelete }: MixDetailProps) => {
           </TabsContent>
           
           <TabsContent value="livestream" className="p-6">
-            <h4 className="text-sm font-medium text-slate-500 mb-2 flex items-center">
-              <Tv className="h-4 w-4 mr-1 text-blue-600" />
-              Livestream Mix Notes
-            </h4>
-            <p className="text-slate-700 whitespace-pre-line">
-              {mix.livestreamMixNotes || 'No livestream mix notes recorded.'}
-            </p>
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-slate-500 mb-2 flex items-center">
+                  <Tv className="h-4 w-4 mr-1 text-blue-600" />
+                  Livestream Mix Notes
+                </h4>
+                <p className="text-slate-700 whitespace-pre-line">
+                  {mix.livestreamMixNotes || 'No livestream mix notes recorded.'}
+                </p>
+              </div>
+              
+              {mix.youtubeUrl && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-slate-500 mb-2">YouTube Video</h4>
+                  <div className="aspect-video w-full max-w-2xl rounded-md overflow-hidden border border-slate-200">
+                    <iframe 
+                      width="100%" 
+                      height="100%"
+                      src={mix.youtubeUrl}
+                      title="YouTube video player"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                </div>
+              )}
+            </div>
           </TabsContent>
           
           <TabsContent value="inear" className="p-6">
@@ -215,6 +245,18 @@ const MixDetail = ({ mix, onDelete }: MixDetailProps) => {
               {mix.inEarMixNotes || 'No in-ear monitor mix notes recorded.'}
             </p>
           </TabsContent>
+          
+          {mix.audioSrc && (
+            <TabsContent value="audio" className="p-6">
+              <h4 className="text-sm font-medium text-slate-500 mb-2 flex items-center">
+                <Music className="h-4 w-4 mr-1 text-blue-600" />
+                Audio Recording
+              </h4>
+              <div className="bg-slate-100 p-4 rounded-md mt-2">
+                <audio src={mix.audioSrc} controls className="w-full" />
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </CardContent>
       

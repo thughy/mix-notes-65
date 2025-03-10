@@ -40,8 +40,9 @@ const NewMixEntry = () => {
   const [futureUpdates, setFutureUpdates] = useState('');
   const [ratings, setRatings] = useState<MixRatings>(initialRatings);
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string | undefined>(undefined);
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [previewYoutubeUrl, setPreviewYoutubeUrl] = useState('');
 
   const handleRatingChange = (category: RatingCategory, value: number) => {
     setRatings(prev => ({
@@ -72,6 +73,12 @@ const NewMixEntry = () => {
     return url;
   };
 
+  const handleYoutubePreview = () => {
+    if (youtubeUrl) {
+      setPreviewYoutubeUrl(getYoutubeEmbedUrl(youtubeUrl));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -91,8 +98,8 @@ const NewMixEntry = () => {
       inEarMixNotes,
       futureUpdates,
       ratings,
-      audioSrc: audioSrc || '',
-      youtubeUrl: youtubeUrl ? getYoutubeEmbedUrl(youtubeUrl) : ''
+      audioSrc: audioSrc,
+      youtubeUrl: youtubeUrl ? getYoutubeEmbedUrl(youtubeUrl) : undefined
     };
     
     addMix(newMix);
@@ -288,17 +295,22 @@ const NewMixEntry = () => {
                     onChange={(e) => setYoutubeUrl(e.target.value)}
                     className="flex-1"
                   />
-                  <Button type="button" size="sm" variant="outline">
-                    <Youtube className="h-4 w-4 mr-1" /> Add
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleYoutubePreview}
+                  >
+                    <Youtube className="h-4 w-4 mr-1" /> Preview
                   </Button>
                 </div>
                 
-                {youtubeUrl && (
+                {previewYoutubeUrl && (
                   <div className="mt-4 aspect-video rounded-md overflow-hidden">
                     <iframe 
                       width="100%" 
                       height="100%"
-                      src={getYoutubeEmbedUrl(youtubeUrl)}
+                      src={previewYoutubeUrl}
                       title="YouTube video player"
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
