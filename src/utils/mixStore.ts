@@ -77,6 +77,7 @@ export const useMixStore = () => {
   useEffect(() => {
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+      console.log('Saved to localStorage:', state);
     } catch (error) {
       console.error('Error saving data to localStorage:', error);
     }
@@ -92,11 +93,17 @@ export const useMixStore = () => {
       updatedAt: timestamp
     };
     
-    setState(prev => ({
-      ...prev,
-      mixes: [newMix, ...prev.mixes],
-      activeMixId: newMix.id
-    }));
+    console.log('Adding new mix:', newMix);
+    
+    setState((prev) => {
+      const updatedState = {
+        ...prev,
+        mixes: [newMix, ...prev.mixes],
+        activeMixId: newMix.id
+      };
+      console.log('Updated state after adding mix:', updatedState);
+      return updatedState;
+    });
   };
 
   const updateMix = (id: string, updates: Partial<MixEntry>) => {

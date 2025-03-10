@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -87,6 +86,21 @@ const NewMixEntry = () => {
       return;
     }
     
+    console.log('Creating new mix with data:', {
+      date,
+      venue,
+      artist,
+      event,
+      generalNotes,
+      roomMixNotes,
+      livestreamMixNotes,
+      inEarMixNotes,
+      futureUpdates,
+      ratings,
+      audioSrc,
+      youtubeUrl: youtubeUrl ? getYoutubeEmbedUrl(youtubeUrl) : undefined
+    });
+    
     const newMix: Omit<MixEntry, 'id' | 'createdAt' | 'updatedAt'> = {
       date,
       venue,
@@ -98,13 +112,17 @@ const NewMixEntry = () => {
       inEarMixNotes,
       futureUpdates,
       ratings,
-      audioSrc: audioSrc,
+      audioSrc,
       youtubeUrl: youtubeUrl ? getYoutubeEmbedUrl(youtubeUrl) : undefined
     };
     
     addMix(newMix);
     toast.success('Mix entry saved successfully!');
-    navigate('/');
+    
+    // Navigate after a small delay to ensure state update completes
+    setTimeout(() => {
+      navigate('/');
+    }, 500);
   };
 
   return (
