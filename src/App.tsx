@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NewMixEntry from "./pages/NewMixEntry";
+import EditMixEntry from "./pages/EditMixEntry";
 import ProgressPage from "./pages/ProgressPage";
 import NotFound from "./pages/NotFound";
 
@@ -20,6 +21,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/new" element={<NewMixEntry />} />
+          <Route path="/edit/:id" element={<EditMixEntry />} />
           <Route path="/progress" element={<ProgressPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

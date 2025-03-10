@@ -107,14 +107,19 @@ export const useMixStore = () => {
   };
 
   const updateMix = (id: string, updates: Partial<MixEntry>) => {
-    setState(prev => ({
-      ...prev,
-      mixes: prev.mixes.map(mix => 
+    console.log('Updating mix with ID:', id, 'Updates:', updates);
+    setState(prev => {
+      const updatedMixes = prev.mixes.map(mix => 
         mix.id === id 
           ? { ...mix, ...updates, updatedAt: Date.now() } 
           : mix
-      )
-    }));
+      );
+      console.log('Updated mixes array:', updatedMixes);
+      return {
+        ...prev,
+        mixes: updatedMixes
+      };
+    });
   };
 
   const deleteMix = (id: string) => {
@@ -135,6 +140,10 @@ export const useMixStore = () => {
   const getActiveMix = () => {
     return state.mixes.find(mix => mix.id === state.activeMixId);
   };
+  
+  const getMixById = (id: string) => {
+    return state.mixes.find(mix => mix.id === id);
+  };
 
   return {
     state,
@@ -142,6 +151,7 @@ export const useMixStore = () => {
     updateMix,
     deleteMix,
     setActiveMix,
-    getActiveMix
+    getActiveMix,
+    getMixById
   };
 };

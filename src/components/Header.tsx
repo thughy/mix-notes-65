@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, BarChart, Music, Settings, ChevronRight, Home, Plus } from 'lucide-react';
+import { Menu, X, BarChart, SlidersVertical, Settings, ChevronRight, Home, Plus } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 
@@ -45,8 +45,8 @@ const Header = () => {
           className="flex items-center gap-2 text-2xl font-medium text-blue-700 transition-transform hover:scale-[1.02]"
           onClick={() => setIsMenuOpen(false)}
         >
-          <Music className="h-6 w-6" />
-          <span className="font-bold">Mix Notes</span>
+          <SlidersVertical className="h-6 w-6" />
+          <span className="font-bold uppercase" style={{ fontFamily: 'Poppins, sans-serif' }}>MIX NOTES</span>
         </Link>
         
         {isMobile ? (
@@ -80,7 +80,7 @@ const Header = () => {
                   className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <Music className="h-5 w-5 text-blue-600" />
+                  <SlidersVertical className="h-5 w-5 text-blue-600" />
                   <span>New Mix Entry</span>
                 </Link>
                 <Link 
