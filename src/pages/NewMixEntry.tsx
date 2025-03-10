@@ -42,7 +42,6 @@ const NewMixEntry = () => {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioSrc, setAudioSrc] = useState<string | undefined>(undefined);
   const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [previewYoutubeUrl, setPreviewYoutubeUrl] = useState('');
 
   const handleRatingChange = (category: RatingCategory, value: number) => {
     setRatings(prev => ({
@@ -77,12 +76,6 @@ const NewMixEntry = () => {
     }
     
     return url;
-  };
-
-  const handleYoutubePreview = () => {
-    if (youtubeUrl) {
-      setPreviewYoutubeUrl(getYoutubeEmbedUrl(youtubeUrl));
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -311,38 +304,14 @@ const NewMixEntry = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="youtubeUrl">YouTube Video Link</Label>
-                <div className="flex items-center space-x-2">
-                  <Input 
-                    id="youtubeUrl" 
-                    type="text" 
-                    placeholder="Paste YouTube URL here" 
-                    value={youtubeUrl} 
-                    onChange={(e) => setYoutubeUrl(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button 
-                    type="button" 
-                    size="sm" 
-                    variant="outline"
-                    onClick={handleYoutubePreview}
-                  >
-                    <Youtube className="h-4 w-4 mr-1" /> Preview
-                  </Button>
-                </div>
-                
-                {previewYoutubeUrl && (
-                  <div className="mt-4 aspect-video rounded-md overflow-hidden">
-                    <iframe 
-                      width="100%" 
-                      height="100%"
-                      src={previewYoutubeUrl}
-                      title="YouTube video player"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
-                )}
+                <Input 
+                  id="youtubeUrl" 
+                  type="text" 
+                  placeholder="Paste YouTube URL here" 
+                  value={youtubeUrl} 
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  className="flex-1"
+                />
               </div>
             </CardContent>
           </Card>
