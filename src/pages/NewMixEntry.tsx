@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, Save } from 'lucide-react';
+import { ChevronLeft, Save, Upload, Youtube } from 'lucide-react';
 import Header from '@/components/Header';
 import RatingSlider from '@/components/RatingSlider';
 import { MixEntry, MixRatings, RatingCategory } from '@/types';
@@ -39,12 +39,37 @@ const NewMixEntry = () => {
   const [inEarMixNotes, setInEarMixNotes] = useState('');
   const [futureUpdates, setFutureUpdates] = useState('');
   const [ratings, setRatings] = useState<MixRatings>(initialRatings);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
 
   const handleRatingChange = (category: RatingCategory, value: number) => {
     setRatings(prev => ({
       ...prev,
       [category]: value
     }));
+  };
+
+  const handleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAudioFile(file);
+      const url = URL.createObjectURL(file);
+      setAudioSrc(url);
+    }
+  };
+
+  const getYoutubeEmbedUrl = (url: string) => {
+    // Extract video ID from various YouTube URL formats
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/embed/${match[2]}`;
+    }
+    
+    // If no match, return the original URL (will likely not work as an embed)
+    return url;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -65,7 +90,9 @@ const NewMixEntry = () => {
       livestreamMixNotes,
       inEarMixNotes,
       futureUpdates,
-      ratings
+      ratings,
+      audioSrc: audioSrc || '',
+      youtubeUrl: youtubeUrl ? getYoutubeEmbedUrl(youtubeUrl) : ''
     };
     
     addMix(newMix);
@@ -212,6 +239,76 @@ const NewMixEntry = () => {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="shadow-soft border border-slate-200 bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl font-semibold text-slate-800">
+                Audio Recording
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="audioUpload">Upload Mix Recording</Label>
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    id="audioUpload" 
+                    type="file" 
+                    accept="audio/*"
+                    onChange={handleAudioUpload}
+                    className="flex-1"
+                  />
+                  <Button type="button" size="sm" variant="outline">
+                    <Upload className="h-4 w-4 mr-1" /> Upload
+                  </Button>
+                </div>
+                {audioSrc && (
+                  <div className="mt-4 bg-slate-100 p-4 rounded-md">
+                    <audio src={audioSrc} controls className="w-full" />
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-soft border border-slate-200 bg-white">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl font-semibold text-slate-800">
+                Livestream
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="youtubeUrl">YouTube Video Link</Label>
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    id="youtubeUrl" 
+                    type="text" 
+                    placeholder="Paste YouTube URL here" 
+                    value={youtubeUrl} 
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button type="button" size="sm" variant="outline">
+                    <Youtube className="h-4 w-4 mr-1" /> Add
+                  </Button>
+                </div>
+                
+                {youtubeUrl && (
+                  <div className="mt-4 aspect-video rounded-md overflow-hidden">
+                    <iframe 
+                      width="100%" 
+                      height="100%"
+                      src={getYoutubeEmbedUrl(youtubeUrl)}
+                      title="YouTube video player"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
           
           <Card className="shadow-soft border border-slate-200 bg-white">
             <CardHeader className="pb-4">
@@ -223,49 +320,49 @@ const NewMixEntry = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-8">
                   <RatingSlider 
-                    label="Clarity" 
+                    category="clarity"
                     value={ratings.clarity} 
                     onChange={(value) => handleRatingChange('clarity', value)} 
                   />
                   <RatingSlider 
-                    label="Balance" 
+                    category="balance"
                     value={ratings.balance} 
                     onChange={(value) => handleRatingChange('balance', value)} 
                   />
                   <RatingSlider 
-                    label="Vocals" 
+                    category="vocals"
                     value={ratings.vocals} 
                     onChange={(value) => handleRatingChange('vocals', value)} 
                   />
                   <RatingSlider 
-                    label="Instruments" 
+                    category="instruments"
                     value={ratings.instruments} 
                     onChange={(value) => handleRatingChange('instruments', value)} 
                   />
                   <RatingSlider 
-                    label="Low End" 
+                    category="lowEnd"
                     value={ratings.lowEnd} 
                     onChange={(value) => handleRatingChange('lowEnd', value)} 
                   />
                 </div>
                 <div className="space-y-8">
                   <RatingSlider 
-                    label="Stereo Image" 
+                    category="stereoImage"
                     value={ratings.stereoImage} 
                     onChange={(value) => handleRatingChange('stereoImage', value)} 
                   />
                   <RatingSlider 
-                    label="Dynamics" 
+                    category="dynamics"
                     value={ratings.dynamics} 
                     onChange={(value) => handleRatingChange('dynamics', value)} 
                   />
                   <RatingSlider 
-                    label="Effects" 
+                    category="effects"
                     value={ratings.effects} 
                     onChange={(value) => handleRatingChange('effects', value)} 
                   />
                   <RatingSlider 
-                    label="Overall" 
+                    category="overall"
                     value={ratings.overall} 
                     onChange={(value) => handleRatingChange('overall', value)} 
                   />

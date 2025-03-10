@@ -11,6 +11,8 @@ export interface MixEntry {
   inEarMixNotes: string;
   futureUpdates: string;
   ratings: MixRatings;
+  audioSrc?: string;
+  youtubeUrl?: string;
   createdAt: number;
   updatedAt: number;
 }

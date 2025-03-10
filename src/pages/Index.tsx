@@ -1,17 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, BarChart, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { BarChart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import RecentMixes from '@/components/RecentMixes';
 import MixDetail from '@/components/MixDetail';
 import ProgressChart from '@/components/ProgressChart';
 import { useMixStore } from '@/utils/mixStore';
-import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { MixEntry } from '@/types';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -54,12 +51,8 @@ const Index = () => {
       <Header />
       
       <main className="pt-24 pb-16 px-4 container mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center mb-6">
           <h1 className="text-3xl font-bold text-slate-800">Mix Notes</h1>
-          <Button onClick={() => navigate('/new')}>
-            <Plus className="mr-1 h-4 w-4" />
-            New Mix
-          </Button>
         </div>
         
         {state.mixes.length === 0 ? (
@@ -70,7 +63,6 @@ const Index = () => {
               Log your thoughts, track ratings, and see your improvement over time.
             </p>
             <Button size="lg" onClick={() => navigate('/new')}>
-              <Plus className="mr-2 h-4 w-4" />
               Create Your First Mix Entry
             </Button>
           </div>

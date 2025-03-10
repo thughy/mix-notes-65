@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, BarChart, Music, Settings, ChevronRight, Home } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, BarChart, Music, Settings, ChevronRight, Home, Plus } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 
 const Header = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -121,9 +122,9 @@ const Header = () => {
             >
               Progress Tracker
             </Link>
-            <Button variant="default" className="ml-2" size="sm" as={Link} to="/new">
-              <span>Create Mix Log</span>
-              <ChevronRight className="ml-1 h-4 w-4" />
+            <Button variant="default" className="ml-2" size="sm" onClick={() => navigate('/new')}>
+              <Plus className="mr-1 h-4 w-4" />
+              <span>New Mix</span>
             </Button>
           </nav>
         )}
