@@ -127,10 +127,10 @@ export default function Account() {
     try {
       setIsUpdatingName(true);
       
-      // Update first and last name
+      // Fix: Use the correct property names according to Clerk's API
       await user?.update({
-        firstName,
-        lastName,
+        firstName: firstName,
+        lastName: lastName,
       });
       
       toast.success("Name updated successfully");
