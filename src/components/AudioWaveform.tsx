@@ -1,23 +1,17 @@
-
 import { useEffect, useRef, useState } from 'react';
 
 interface AudioWaveformProps {
   audioSrc: string;
-  frequencyFilter?: {
-    type: 'lowpass' | 'bandpass' | 'highpass';
-    low: number;
-    high?: number;
-  };
 }
 
-const AudioWaveform = ({ audioSrc, frequencyFilter }: AudioWaveformProps) => {
+const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-  const filterRef = useRef<BiquadFilterNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const dataHistoryRef = useRef<Array<Uint8Array>>([]);
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Initialize audio context and analyzer
@@ -29,37 +23,16 @@ const AudioWaveform = ({ audioSrc, frequencyFilter }: AudioWaveformProps) => {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       audioContextRef.current = new AudioContext();
       analyserRef.current = audioContextRef.current.createAnalyser();
+      
+      // Configure analyzer for FFT display
       analyserRef.current.fftSize = 2048;
+      analyserRef.current.smoothingTimeConstant = 0.8;
 
       // Connect audio element to analyzer
       if (audioRef.current) {
         sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-        
-        // Create filter if frequency filter is provided
-        if (frequencyFilter) {
-          filterRef.current = audioContextRef.current.createBiquadFilter();
-          
-          if (frequencyFilter.type === 'lowpass') {
-            filterRef.current.type = 'lowpass';
-            filterRef.current.frequency.value = frequencyFilter.high || frequencyFilter.low;
-          } else if (frequencyFilter.type === 'highpass') {
-            filterRef.current.type = 'highpass';
-            filterRef.current.frequency.value = frequencyFilter.low;
-          } else if (frequencyFilter.type === 'bandpass') {
-            filterRef.current.type = 'bandpass';
-            filterRef.current.frequency.value = (frequencyFilter.low + (frequencyFilter.high || 0)) / 2;
-            filterRef.current.Q.value = 1.0; // Q factor for bandpass width
-          }
-          
-          // Connect source to filter to analyzer to destination
-          sourceRef.current.connect(filterRef.current);
-          filterRef.current.connect(analyserRef.current);
-          analyserRef.current.connect(audioContextRef.current.destination);
-        } else {
-          // Connect source directly to analyzer to destination
-          sourceRef.current.connect(analyserRef.current);
-          analyserRef.current.connect(audioContextRef.current.destination);
-        }
+        sourceRef.current.connect(analyserRef.current);
+        analyserRef.current.connect(audioContextRef.current.destination);
       }
     };
 
@@ -76,9 +49,9 @@ const AudioWaveform = ({ audioSrc, frequencyFilter }: AudioWaveformProps) => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [audioSrc, frequencyFilter]);
+  }, [audioSrc]);
 
-  // Draw waveform on canvas
+  // Draw FFT spectrum on canvas
   useEffect(() => {
     if (!canvasRef.current || !analyserRef.current) return;
 
@@ -88,37 +61,82 @@ const AudioWaveform = ({ audioSrc, frequencyFilter }: AudioWaveformProps) => {
 
     const bufferLength = analyserRef.current.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
+    
+    // Initialize history array for 5-second averaging (assuming 60fps)
+    const historyLength = 300; // 5 seconds at 60fps
+    dataHistoryRef.current = [];
 
     const draw = () => {
       animationFrameRef.current = requestAnimationFrame(draw);
       
-      analyserRef.current!.getByteTimeDomainData(dataArray);
+      // Get frequency data
+      analyserRef.current!.getByteFrequencyData(dataArray);
       
+      // Add current data to history
+      dataHistoryRef.current.push(new Uint8Array(dataArray));
+      
+      // Keep history at max length
+      if (dataHistoryRef.current.length > historyLength) {
+        dataHistoryRef.current.shift();
+      }
+      
+      // Calculate average over history
+      const averagedData = new Uint8Array(bufferLength);
+      if (dataHistoryRef.current.length > 0) {
+        for (let i = 0; i < bufferLength; i++) {
+          let sum = 0;
+          for (let j = 0; j < dataHistoryRef.current.length; j++) {
+            sum += dataHistoryRef.current[j][i];
+          }
+          averagedData[i] = Math.round(sum / dataHistoryRef.current.length);
+        }
+      }
+      
+      // Clear canvas
       ctx.fillStyle = 'rgb(240, 240, 240)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = frequencyFilter ? 'rgb(0, 100, 220)' : 'rgb(0, 150, 255)';
-      ctx.beginPath();
-      
-      const sliceWidth = canvas.width / bufferLength;
+      // Draw FFT spectrum
+      const barWidth = (canvas.width / bufferLength) * 2.5;
       let x = 0;
       
       for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0;
-        const y = v * (canvas.height / 2);
+        const barHeight = (averagedData[i] / 255) * canvas.height;
         
-        if (i === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
+        // Set gradient color based on frequency
+        const hue = i / bufferLength * 240; // Blue to red spectrum
+        ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
         
-        x += sliceWidth;
+        // Draw bar
+        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+        
+        x += barWidth + 1;
+        
+        // Only display the lower half of the spectrum (more meaningful for audio)
+        if (x > canvas.width) break;
       }
       
-      ctx.lineTo(canvas.width, canvas.height / 2);
-      ctx.stroke();
+      // Draw frequency axis labels
+      ctx.fillStyle = 'rgb(80, 80, 80)';
+      ctx.font = '10px Arial';
+      
+      // Calculate some frequency markers (logarithmic scale)
+      const nyquist = audioContextRef.current!.sampleRate / 2;
+      const markers = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+      
+      markers.forEach(freq => {
+        if (freq <= nyquist) {
+          const xPos = (freq / nyquist) * (canvas.width / 2);
+          ctx.fillText(`${freq < 1000 ? freq : (freq/1000) + 'k'}`, xPos, canvas.height - 5);
+        }
+      });
+      
+      // Draw amplitude axis label
+      ctx.save();
+      ctx.translate(10, canvas.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Amplitude (dB)', 0, 0);
+      ctx.restore();
     };
 
     if (isPlaying) {
@@ -130,24 +148,7 @@ const AudioWaveform = ({ audioSrc, frequencyFilter }: AudioWaveformProps) => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isPlaying, frequencyFilter]);
-
-  // Handle play/pause
-  const togglePlayback = () => {
-    if (!audioRef.current) return;
-    
-    if (audioContextRef.current?.state === 'suspended') {
-      audioContextRef.current.resume();
-    }
-    
-    if (audioRef.current.paused) {
-      audioRef.current.play();
-      setIsPlaying(true);
-    } else {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
-  };
+  }, [isPlaying]);
 
   return (
     <div className="space-y-4">

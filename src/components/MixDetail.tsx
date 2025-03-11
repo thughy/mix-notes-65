@@ -24,14 +24,12 @@ import {
   Edit, 
   Trash2,
   AudioLines,
-  Youtube,
-  Volume
+  Youtube
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { MixEntry } from '@/types';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import AudioWaveform from './AudioWaveform';
 
 interface MixDetailProps {
@@ -41,7 +39,6 @@ interface MixDetailProps {
 
 const MixDetail = ({ mix, onDelete }: MixDetailProps) => {
   const navigate = useNavigate();
-  const [activeFrequencyFilter, setActiveFrequencyFilter] = useState<string | null>(null);
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -81,22 +78,6 @@ const MixDetail = ({ mix, onDelete }: MixDetailProps) => {
     }
     
     return url;
-  };
-
-  // Get current frequency filter configuration
-  const getFrequencyFilter = () => {
-    switch (activeFrequencyFilter) {
-      case 'bass':
-        return { type: 'lowpass' as const, low: 20, high: 200 };
-      case 'lowMids':
-        return { type: 'bandpass' as const, low: 200, high: 800 };
-      case 'highMids':
-        return { type: 'bandpass' as const, low: 800, high: 5000 };
-      case 'highs':
-        return { type: 'highpass' as const, low: 8000 };
-      default:
-        return undefined;
-    }
   };
 
   return (
@@ -275,67 +256,16 @@ const MixDetail = ({ mix, onDelete }: MixDetailProps) => {
           <TabsContent value="boardmix" className="p-6">
             <h4 className="text-sm font-medium text-slate-500 mb-2 flex items-center">
               <AudioLines className="h-4 w-4 mr-1 text-blue-600" />
-              Board Mix Audio
+              Board Mix Audio Spectrum
             </h4>
             {mix.audioSrc ? (
               <div className="space-y-6">
                 <div className="bg-slate-50 p-4 rounded-md">
-                  <AudioWaveform 
-                    audioSrc={mix.audioSrc} 
-                    frequencyFilter={getFrequencyFilter()}
-                  />
+                  <AudioWaveform audioSrc={mix.audioSrc} />
                 </div>
-                
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-slate-700">Audio Isolation Options</h4>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant={activeFrequencyFilter === null ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setActiveFrequencyFilter(null)}
-                      className="flex gap-1 items-center"
-                    >
-                      <Volume className="h-4 w-4" />
-                      <span>Full Spectrum</span>
-                    </Button>
-                    <Button
-                      variant={activeFrequencyFilter === 'bass' ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setActiveFrequencyFilter('bass')}
-                      className="flex gap-1 items-center"
-                    >
-                      <Volume className="h-4 w-4" />
-                      <span>Bass (0-200Hz)</span>
-                    </Button>
-                    <Button
-                      variant={activeFrequencyFilter === 'lowMids' ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setActiveFrequencyFilter('lowMids')}
-                      className="flex gap-1 items-center"
-                    >
-                      <Volume className="h-4 w-4" />
-                      <span>Low Mids (200-800Hz)</span>
-                    </Button>
-                    <Button
-                      variant={activeFrequencyFilter === 'highMids' ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setActiveFrequencyFilter('highMids')}
-                      className="flex gap-1 items-center"
-                    >
-                      <Volume className="h-4 w-4" />
-                      <span>High Mids (800Hz-5kHz)</span>
-                    </Button>
-                    <Button
-                      variant={activeFrequencyFilter === 'highs' ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setActiveFrequencyFilter('highs')}
-                      className="flex gap-1 items-center"
-                    >
-                      <Volume className="h-4 w-4" />
-                      <span>Highs (8kHz-20kHz)</span>
-                    </Button>
-                  </div>
-                </div>
+                <p className="text-xs text-slate-500 italic text-center">
+                  Audio frequency spectrum with 5-second averaging. X-axis shows frequency (Hz), Y-axis shows amplitude.
+                </p>
               </div>
             ) : (
               <p className="text-slate-500 italic">No board mix audio uploaded for this entry.</p>
