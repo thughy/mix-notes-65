@@ -1,11 +1,10 @@
-
 import React, { useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
-import AudioWaveform from '@/components/AudioWaveform';
+import AudioWaveform from '@/components/AudioVisualizer/AudioWaveform';
 
 interface AudioSectionProps {
   audioFile: File | null;

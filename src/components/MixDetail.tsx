@@ -1,4 +1,3 @@
-
 import { 
   Card, 
   CardContent, 
@@ -30,7 +29,7 @@ import { toast } from 'sonner';
 import { MixEntry } from '@/types';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import AudioWaveform from './AudioWaveform';
+import AudioWaveform from './AudioVisualizer/AudioWaveform';
 
 interface MixDetailProps {
   mix: MixEntry;

@@ -1,13 +1,23 @@
-
 import { useEffect, useRef, useState } from 'react';
+import { createAudioContext, createAnalyzer, connectAudioElementToAnalyzer } from '@/utils/audioContext';
 
-interface AudioWaveformProps {
+interface UseAudioVisualizationProps {
   audioSrc: string;
+  canvasRef: React.RefObject<HTMLCanvasElement>;
+  audioRef: React.RefObject<HTMLAudioElement>;
 }
 
-const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+interface UseAudioVisualizationReturn {
+  isPlaying: boolean;
+  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
+  opacity: number;
+}
+
+export const useAudioVisualization = ({ 
+  audioSrc, 
+  canvasRef, 
+  audioRef 
+}: UseAudioVisualizationProps): UseAudioVisualizationReturn => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
@@ -22,24 +32,19 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
     if (!audioSrc) return;
 
     const initAudio = () => {
-      // Create audio context
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      
       // Check if we already have an audio context
       if (!audioContextRef.current) {
-        audioContextRef.current = new AudioContext();
-        analyserRef.current = audioContextRef.current.createAnalyser();
-        
-        // Configure analyzer for FFT display
-        analyserRef.current.fftSize = 2048;
-        analyserRef.current.smoothingTimeConstant = 0.8;
+        audioContextRef.current = createAudioContext();
+        analyserRef.current = createAnalyzer(audioContextRef.current);
       }
 
       // Connect audio element to analyzer if not already connected
       if (audioRef.current && !sourceRef.current) {
-        sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-        sourceRef.current.connect(analyserRef.current);
-        analyserRef.current.connect(audioContextRef.current.destination);
+        sourceRef.current = connectAudioElementToAnalyzer(
+          audioContextRef.current,
+          analyserRef.current,
+          audioRef.current
+        );
       }
     };
 
@@ -255,27 +260,5 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
     };
   }, [isPlaying, opacity]);
 
-  return (
-    <div className="space-y-4">
-      <canvas 
-        ref={canvasRef} 
-        className="w-full h-48 bg-slate-50 rounded-md border border-slate-200"
-        width={1200}
-        height={300}
-      />
-      <div className="flex items-center justify-center">
-        <audio 
-          ref={audioRef} 
-          src={audioSrc} 
-          controls 
-          className="w-full" 
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onEnded={() => setIsPlaying(false)}
-        />
-      </div>
-    </div>
-  );
+  return { isPlaying, setIsPlaying, opacity };
 };
-
-export default AudioWaveform;
