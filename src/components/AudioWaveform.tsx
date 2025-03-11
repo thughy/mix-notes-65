@@ -93,50 +93,37 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
       }
       
       // Clear canvas
-      ctx.fillStyle = 'rgb(240, 240, 240)';
+      ctx.fillStyle = 'rgb(248, 250, 252)'; // Use slate-50 for background
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // Draw FFT spectrum
       const barWidth = (canvas.width / bufferLength) * 2.5;
       let x = 0;
       
-      for (let i = 0; i < bufferLength; i++) {
+      // Calculate max frequency to display (20kHz)
+      const nyquist = audioContextRef.current!.sampleRate / 2;
+      const maxFreqFraction = Math.min(20000 / nyquist, 1);
+      const maxBinIndex = Math.floor(bufferLength * maxFreqFraction);
+      
+      for (let i = 0; i < maxBinIndex; i++) {
         const barHeight = (averagedData[i] / 255) * canvas.height;
         
-        // Set gradient color based on frequency
-        const hue = i / bufferLength * 240; // Blue to red spectrum
-        ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+        // Calculate blue gradient based on position and amplitude
+        const blueValue = Math.max(140 - averagedData[i] / 2, 0);
+        const gradient = ctx.createLinearGradient(x, canvas.height, x, canvas.height - barHeight);
+        gradient.addColorStop(0, `rgb(46, 150, 255)`); // Blue-500
+        gradient.addColorStop(1, `rgb(184, 219, 255)`); // Blue-200
+        
+        ctx.fillStyle = gradient;
         
         // Draw bar
         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
         
         x += barWidth + 1;
         
-        // Only display the lower half of the spectrum (more meaningful for audio)
+        // Only display up to 20kHz
         if (x > canvas.width) break;
       }
-      
-      // Draw frequency axis labels
-      ctx.fillStyle = 'rgb(80, 80, 80)';
-      ctx.font = '10px Arial';
-      
-      // Calculate some frequency markers (logarithmic scale)
-      const nyquist = audioContextRef.current!.sampleRate / 2;
-      const markers = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
-      
-      markers.forEach(freq => {
-        if (freq <= nyquist) {
-          const xPos = (freq / nyquist) * (canvas.width / 2);
-          ctx.fillText(`${freq < 1000 ? freq : (freq/1000) + 'k'}`, xPos, canvas.height - 5);
-        }
-      });
-      
-      // Draw amplitude axis label
-      ctx.save();
-      ctx.translate(10, canvas.height / 2);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillText('Amplitude (dB)', 0, 0);
-      ctx.restore();
     };
 
     if (isPlaying) {
@@ -154,7 +141,7 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
     <div className="space-y-4">
       <canvas 
         ref={canvasRef} 
-        className="w-full h-32 bg-slate-100 rounded-md border border-slate-200"
+        className="w-full h-32 bg-slate-50 rounded-md border border-slate-200"
         width={1000}
         height={200}
       />
