@@ -1,13 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, Save, Upload } from 'lucide-react';
-import RatingSlider from '@/components/RatingSlider';
-import { MixEntry, MixRatings, RatingCategory } from '@/types';
-import AudioWaveform from './AudioWaveform';
+import { Save } from 'lucide-react';
+import { MixRatings, RatingCategory } from '@/types';
+import FormHeader from './mix-form/FormHeader';
+import BasicInfoSection from './mix-form/BasicInfoSection';
+import NotesSection from './mix-form/NotesSection';
+import AudioSection from './mix-form/AudioSection';
+import YoutubeSection from './mix-form/YoutubeSection';
+import RatingsSection from './mix-form/RatingsSection';
 
 interface MixFormProps {
   initialData: {
@@ -37,39 +38,32 @@ const MixForm = ({
   submitButtonText, 
   title 
 }: MixFormProps) => {
+  // Basic information state
   const [date, setDate] = useState(initialData.date);
   const [venue, setVenue] = useState(initialData.venue);
   const [artist, setArtist] = useState(initialData.artist);
   const [event, setEvent] = useState(initialData.event);
+  
+  // Notes state
   const [generalNotes, setGeneralNotes] = useState(initialData.generalNotes);
   const [roomMixNotes, setRoomMixNotes] = useState(initialData.roomMixNotes);
   const [livestreamMixNotes, setLivestreamMixNotes] = useState(initialData.livestreamMixNotes);
   const [inEarMixNotes, setInEarMixNotes] = useState(initialData.inEarMixNotes);
   const [futureUpdates, setFutureUpdates] = useState(initialData.futureUpdates);
+  
+  // Ratings state
   const [ratings, setRatings] = useState<MixRatings>(initialData.ratings);
+  
+  // Audio and YouTube state
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioSrc, setAudioSrc] = useState<string | undefined>(initialData.audioSrc);
   const [youtubeUrl, setYoutubeUrl] = useState(initialData.youtubeUrl || '');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRatingChange = (category: RatingCategory, value: number) => {
     setRatings(prev => ({
       ...prev,
       [category]: value
     }));
-  };
-
-  const handleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setAudioFile(file);
-      const url = URL.createObjectURL(file);
-      setAudioSrc(url);
-    }
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
   };
 
   useEffect(() => {
@@ -120,258 +114,52 @@ const MixForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onCancel}
-            className="mr-4"
-            type="button"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
-          <h1 className="text-3xl font-bold text-slate-800">{title}</h1>
-        </div>
-        <Button type="submit">
-          <Save className="mr-1 h-4 w-4" />
-          {submitButtonText}
-        </Button>
-      </div>
+      <FormHeader 
+        title={title} 
+        submitButtonText={submitButtonText} 
+        onCancel={onCancel} 
+      />
       
-      <Card className="shadow-soft border border-slate-200 bg-white">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-slate-800">
-            Basic Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Date</Label>
-              <Input 
-                id="date" 
-                type="date" 
-                value={date} 
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="venue">Venue</Label>
-              <Input 
-                id="venue" 
-                placeholder="Enter venue name" 
-                value={venue} 
-                onChange={(e) => setVenue(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="artist">Artist/Band</Label>
-              <Input 
-                id="artist" 
-                placeholder="Enter artist/band name" 
-                value={artist} 
-                onChange={(e) => setArtist(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="event">Event</Label>
-              <Input 
-                id="event" 
-                placeholder="Enter event name" 
-                value={event} 
-                onChange={(e) => setEvent(e.target.value)}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <BasicInfoSection 
+        date={date}
+        venue={venue}
+        artist={artist}
+        event={event}
+        setDate={setDate}
+        setVenue={setVenue}
+        setArtist={setArtist}
+        setEvent={setEvent}
+      />
       
-      <Card className="shadow-soft border border-slate-200 bg-white">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-slate-800">
-            Mix Notes
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="generalNotes">General Notes</Label>
-            <Textarea 
-              id="generalNotes" 
-              placeholder="Overall thoughts on the mix..." 
-              value={generalNotes} 
-              onChange={(e) => setGeneralNotes(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="roomMixNotes">Room Mix Notes</Label>
-            <Textarea 
-              id="roomMixNotes" 
-              placeholder="Notes about the room mix..." 
-              value={roomMixNotes} 
-              onChange={(e) => setRoomMixNotes(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="livestreamMixNotes">Livestream Mix Notes</Label>
-            <Textarea 
-              id="livestreamMixNotes" 
-              placeholder="Notes about the livestream mix..." 
-              value={livestreamMixNotes} 
-              onChange={(e) => setLivestreamMixNotes(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="inEarMixNotes">In-Ear Mix Notes</Label>
-            <Textarea 
-              id="inEarMixNotes" 
-              placeholder="Notes about the in-ear monitor mix..." 
-              value={inEarMixNotes} 
-              onChange={(e) => setInEarMixNotes(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="futureUpdates">Future Updates</Label>
-            <Textarea 
-              id="futureUpdates" 
-              placeholder="Changes to try for next time..." 
-              value={futureUpdates} 
-              onChange={(e) => setFutureUpdates(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <NotesSection 
+        generalNotes={generalNotes}
+        roomMixNotes={roomMixNotes}
+        livestreamMixNotes={livestreamMixNotes}
+        inEarMixNotes={inEarMixNotes}
+        futureUpdates={futureUpdates}
+        setGeneralNotes={setGeneralNotes}
+        setRoomMixNotes={setRoomMixNotes}
+        setLivestreamMixNotes={setLivestreamMixNotes}
+        setInEarMixNotes={setInEarMixNotes}
+        setFutureUpdates={setFutureUpdates}
+      />
 
-      <Card className="shadow-soft border border-slate-200 bg-white">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-slate-800">
-            Audio Recording
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <Label htmlFor="audioUpload">Upload Mix Recording</Label>
-            <div className="flex items-center space-x-2">
-              <Input 
-                ref={fileInputRef}
-                id="audioUpload" 
-                type="file" 
-                accept="audio/*"
-                onChange={handleAudioUpload}
-                className="hidden"
-              />
-              <Input 
-                readOnly
-                value={audioFile?.name || (audioSrc && !audioSrc.startsWith('blob:') ? "Audio file loaded" : "No file selected")}
-                className="flex-1"
-              />
-              <Button type="button" size="sm" variant="outline" onClick={triggerFileInput}>
-                <Upload className="h-4 w-4 mr-1" /> Upload
-              </Button>
-            </div>
-            {audioSrc && (
-              <div className="mt-4 bg-slate-100 p-4 rounded-md">
-                <AudioWaveform audioSrc={audioSrc} />
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <AudioSection 
+        audioFile={audioFile}
+        audioSrc={audioSrc}
+        setAudioFile={setAudioFile}
+        setAudioSrc={setAudioSrc}
+      />
 
-      <Card className="shadow-soft border border-slate-200 bg-white">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-slate-800">
-            Livestream
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="youtubeUrl">YouTube Video Link</Label>
-            <Input 
-              id="youtubeUrl" 
-              type="text" 
-              placeholder="Paste YouTube URL here" 
-              value={youtubeUrl} 
-              onChange={(e) => setYoutubeUrl(e.target.value)}
-              className="flex-1"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <YoutubeSection 
+        youtubeUrl={youtubeUrl}
+        setYoutubeUrl={setYoutubeUrl}
+      />
       
-      <Card className="shadow-soft border border-slate-200 bg-white">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-slate-800">
-            Mix Ratings
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-8">
-              <RatingSlider 
-                category="clarity"
-                value={ratings.clarity} 
-                onChange={(value) => handleRatingChange('clarity', value)} 
-              />
-              <RatingSlider 
-                category="balance"
-                value={ratings.balance} 
-                onChange={(value) => handleRatingChange('balance', value)} 
-              />
-              <RatingSlider 
-                category="vocals"
-                value={ratings.vocals} 
-                onChange={(value) => handleRatingChange('vocals', value)} 
-              />
-              <RatingSlider 
-                category="instruments"
-                value={ratings.instruments} 
-                onChange={(value) => handleRatingChange('instruments', value)} 
-              />
-              <RatingSlider 
-                category="lowEnd"
-                value={ratings.lowEnd} 
-                onChange={(value) => handleRatingChange('lowEnd', value)} 
-              />
-            </div>
-            <div className="space-y-8">
-              <RatingSlider 
-                category="stereoImage"
-                value={ratings.stereoImage} 
-                onChange={(value) => handleRatingChange('stereoImage', value)} 
-              />
-              <RatingSlider 
-                category="dynamics"
-                value={ratings.dynamics} 
-                onChange={(value) => handleRatingChange('dynamics', value)} 
-              />
-              <RatingSlider 
-                category="effects"
-                value={ratings.effects} 
-                onChange={(value) => handleRatingChange('effects', value)} 
-              />
-              <RatingSlider 
-                category="overall"
-                value={ratings.overall} 
-                onChange={(value) => handleRatingChange('overall', value)} 
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <RatingsSection 
+        ratings={ratings}
+        handleRatingChange={handleRatingChange}
+      />
       
       <div className="flex justify-end">
         <Button type="submit" size="lg">

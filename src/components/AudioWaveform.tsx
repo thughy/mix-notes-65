@@ -151,32 +151,66 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
       // Draw FFT spectrum with current opacity
       ctx.globalAlpha = opacity;
       
-      const barWidth = (canvas.width / bufferLength) * 2.5;
-      let x = 0;
-      
-      // Calculate max frequency to display (20kHz)
+      // Calculate logarithmic frequency scale from 1Hz to 20kHz
       const nyquist = audioContextRef.current!.sampleRate / 2;
-      const maxFreqFraction = Math.min(20000 / nyquist, 1);
-      const maxBinIndex = Math.floor(bufferLength * maxFreqFraction);
+      const minFreq = 1; // 1Hz
+      const maxFreq = 20000; // 20kHz
       
-      for (let i = 0; i < maxBinIndex; i++) {
-        const barHeight = (averagedData[i] / 255) * canvas.height;
+      const getXForFrequency = (freq: number) => {
+        // Use logarithmic scale for better visualization of lower frequencies
+        const logMin = Math.log10(minFreq);
+        const logMax = Math.log10(maxFreq);
+        const xPos = (Math.log10(freq) - logMin) / (logMax - logMin) * canvas.width;
+        return xPos;
+      };
+      
+      const getDataIndexForFrequency = (freq: number) => {
+        // Map frequency to FFT bin index
+        return Math.round((freq / nyquist) * (bufferLength - 1));
+      };
+      
+      // Draw frequency bands using logarithmic scale
+      const frequencies: number[] = [];
+      let freq = minFreq;
+      
+      // Generate logarithmically spaced frequency points
+      while (freq <= maxFreq) {
+        frequencies.push(freq);
+        // Increase by smaller steps at lower frequencies for better resolution
+        if (freq < 100) {
+          freq += 5;
+        } else if (freq < 1000) {
+          freq += 50;
+        } else if (freq < 10000) {
+          freq += 500;
+        } else {
+          freq += 1000;
+        }
+      }
+      
+      // Draw each frequency band
+      for (let i = 0; i < frequencies.length - 1; i++) {
+        const f1 = frequencies[i];
+        const f2 = frequencies[i + 1];
         
-        // Calculate blue gradient based on position and amplitude
-        const blueValue = Math.max(140 - averagedData[i] / 2, 0);
-        const gradient = ctx.createLinearGradient(x, canvas.height, x, canvas.height - barHeight);
+        const x1 = getXForFrequency(f1);
+        const x2 = getXForFrequency(f2);
+        const width = x2 - x1;
+        
+        // Get data for this frequency
+        const dataIndex = getDataIndexForFrequency(f1);
+        if (dataIndex >= averagedData.length) continue;
+        
+        const value = averagedData[dataIndex];
+        const barHeight = (value / 255) * canvas.height;
+        
+        // Create gradient color based on frequency and amplitude
+        const gradient = ctx.createLinearGradient(x1, canvas.height, x1, canvas.height - barHeight);
         gradient.addColorStop(0, `rgb(46, 150, 255)`); // Blue-500
         gradient.addColorStop(1, `rgb(184, 219, 255)`); // Blue-200
         
         ctx.fillStyle = gradient;
-        
-        // Draw bar
-        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-        
-        x += barWidth + 1;
-        
-        // Only display up to 20kHz
-        if (x > canvas.width) break;
+        ctx.fillRect(x1, canvas.height - barHeight, width, barHeight);
       }
       
       // Reset opacity for labels
@@ -187,21 +221,26 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
       ctx.font = '10px system-ui, sans-serif';
       ctx.textAlign = 'center';
       
-      // Add frequency markers as requested
-      const markers = [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+      // Add frequency markers
+      const markers = [1, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
       
       markers.forEach(freq => {
-        if (freq <= nyquist) {
-          // Calculate x position as fraction of visible spectrum (0-20kHz)
-          const xPos = (freq / 20000) * canvas.width;
-          
-          // Draw small tick mark
-          ctx.fillRect(xPos, canvas.height - 12, 1, 4);
-          
-          // Draw frequency label
-          const label = freq >= 1000 ? `${freq/1000}kHz` : `${freq}Hz`;
-          ctx.fillText(label, xPos, canvas.height - 2);
+        const xPos = getXForFrequency(freq);
+        
+        // Draw small tick mark
+        ctx.fillRect(xPos, canvas.height - 12, 1, 4);
+        
+        // Format label text
+        let label;
+        if (freq >= 1000) {
+          label = `${freq/1000}kHz`;
+        } else if (freq === 1) {
+          label = `${freq}Hz`;
+        } else {
+          label = `${freq}Hz`;
         }
+        
+        ctx.fillText(label, xPos, canvas.height - 2);
       });
     };
 
