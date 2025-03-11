@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ChevronLeft, Save, Upload } from 'lucide-react';
 import RatingSlider from '@/components/RatingSlider';
 import { MixEntry, MixRatings, RatingCategory } from '@/types';
+import AudioWaveform from './AudioWaveform';
 
 interface MixFormProps {
   initialData: {
@@ -23,7 +24,7 @@ interface MixFormProps {
     audioSrc?: string;
     youtubeUrl?: string;
   };
-  onSubmit: (formData: any) => void;
+  onSubmit: (formData: any, audioFile?: File) => void;
   onCancel: () => void;
   submitButtonText: string;
   title: string;
@@ -71,6 +72,14 @@ const MixForm = ({
     fileInputRef.current?.click();
   };
 
+  useEffect(() => {
+    return () => {
+      if (audioSrc && audioSrc.startsWith('blob:')) {
+        URL.revokeObjectURL(audioSrc);
+      }
+    };
+  }, [audioSrc]);
+
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return '';
     
@@ -106,7 +115,7 @@ const MixForm = ({
       youtubeUrl: youtubeUrl ? getYoutubeEmbedUrl(youtubeUrl) : undefined
     };
     
-    onSubmit(formData);
+    onSubmit(formData, audioFile || undefined);
   };
 
   return (
@@ -253,7 +262,7 @@ const MixForm = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-4">
             <Label htmlFor="audioUpload">Upload Mix Recording</Label>
             <div className="flex items-center space-x-2">
               <Input 
@@ -266,7 +275,7 @@ const MixForm = ({
               />
               <Input 
                 readOnly
-                value={audioFile?.name || "No file selected"}
+                value={audioFile?.name || (audioSrc && !audioSrc.startsWith('blob:') ? "Audio file loaded" : "No file selected")}
                 className="flex-1"
               />
               <Button type="button" size="sm" variant="outline" onClick={triggerFileInput}>
@@ -275,7 +284,7 @@ const MixForm = ({
             </div>
             {audioSrc && (
               <div className="mt-4 bg-slate-100 p-4 rounded-md">
-                <audio src={audioSrc} controls className="w-full" />
+                <AudioWaveform audioSrc={audioSrc} />
               </div>
             )}
           </div>

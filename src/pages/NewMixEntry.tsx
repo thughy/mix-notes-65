@@ -37,23 +37,29 @@ const NewMixEntry = () => {
   const navigate = useNavigate();
   const { addMix } = useMixStore();
 
-  const handleSubmit = (formData: any) => {
+  const handleSubmit = async (formData: any, audioFile?: File) => {
     if (!formData.venue || !formData.artist) {
       toast.error('Please fill out venue and artist fields');
       return;
     }
 
     console.log('Creating new mix with data:', formData);
+    console.log('Audio file provided:', audioFile);
     
     const newMix: Omit<MixEntry, 'id' | 'createdAt' | 'updatedAt'> = formData;
     
-    addMix(newMix);
-    toast.success('Mix entry saved successfully!');
-    
-    // Navigate after a small delay to ensure state update completes
-    setTimeout(() => {
-      navigate('/');
-    }, 500);
+    try {
+      await addMix(newMix, audioFile);
+      toast.success('Mix entry saved successfully!');
+      
+      // Navigate after a small delay to ensure state update completes
+      setTimeout(() => {
+        navigate('/');
+      }, 500);
+    } catch (error) {
+      console.error('Error saving mix:', error);
+      toast.error('Failed to save mix entry');
+    }
   };
 
   const handleCancel = () => {

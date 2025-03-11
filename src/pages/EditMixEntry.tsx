@@ -69,7 +69,7 @@ const EditMixEntry = () => {
     setIsLoading(false);
   }, [id, getMixById, navigate]);
 
-  const handleSubmit = (formData: any) => {
+  const handleSubmit = async (formData: any, audioFile?: File) => {
     if (!id) {
       toast.error('Mix ID is missing');
       return;
@@ -83,14 +83,20 @@ const EditMixEntry = () => {
     const updatedMix: Partial<MixEntry> = formData;
     
     console.log('Updating mix with data:', updatedMix);
+    console.log('Audio file provided:', audioFile);
     
-    updateMix(id, updatedMix);
-    toast.success('Mix entry updated successfully!');
-    
-    // Navigate after a small delay to ensure state update completes
-    setTimeout(() => {
-      navigate('/');
-    }, 500);
+    try {
+      await updateMix(id, updatedMix, audioFile);
+      toast.success('Mix entry updated successfully!');
+      
+      // Navigate after a small delay to ensure state update completes
+      setTimeout(() => {
+        navigate('/');
+      }, 500);
+    } catch (error) {
+      console.error('Error updating mix:', error);
+      toast.error('Failed to update mix entry');
+    }
   };
 
   const handleCancel = () => {

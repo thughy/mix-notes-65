@@ -58,6 +58,16 @@ const initialMixes: MixEntry[] = [
   }
 ];
 
+// Helper function to convert File to Base64 string
+export const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
 // Create a hook for managing mix data
 export const useMixStore = () => {
   const { user, isSignedIn } = useUser();
@@ -120,11 +130,25 @@ export const useMixStore = () => {
   }, [isSignedIn, userId]);
 
   // Actions for managing mixes
-  const addMix = (mix: Omit<MixEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addMix = async (mix: Omit<MixEntry, 'id' | 'createdAt' | 'updatedAt'>, audioFile?: File) => {
     const timestamp = Date.now();
+    
+    // Process audio file if provided
+    let audioData = mix.audioSrc;
+    if (audioFile) {
+      try {
+        // Convert the file to Base64 for storage
+        audioData = await fileToBase64(audioFile);
+        console.log('Audio file converted to Base64 successfully');
+      } catch (error) {
+        console.error('Error converting audio file to Base64:', error);
+      }
+    }
+    
     const newMix: MixEntry = {
       ...mix,
       id: uuidv4(),
+      audioSrc: audioData,
       createdAt: timestamp,
       updatedAt: timestamp
     };
@@ -140,10 +164,26 @@ export const useMixStore = () => {
       console.log('Updated state after adding mix:', updatedState);
       return updatedState;
     });
+    
+    return newMix.id;
   };
 
-  const updateMix = (id: string, updates: Partial<MixEntry>) => {
+  const updateMix = async (id: string, updates: Partial<MixEntry>, audioFile?: File) => {
     console.log('Updating mix with ID:', id, 'Updates:', updates);
+    
+    // Process audio file if provided
+    let audioData = updates.audioSrc;
+    if (audioFile) {
+      try {
+        // Convert the file to Base64 for storage
+        audioData = await fileToBase64(audioFile);
+        console.log('Audio file converted to Base64 successfully');
+        updates = { ...updates, audioSrc: audioData };
+      } catch (error) {
+        console.error('Error converting audio file to Base64:', error);
+      }
+    }
+    
     setState(prev => {
       const updatedMixes = prev.mixes.map(mix => 
         mix.id === id 
