@@ -28,17 +28,19 @@ export function EmailUpdateForm({ user }: EmailUpdateFormProps) {
       setIsUpdatingEmail(true);
       
       // Create the email update
-      await user?.createEmailAddress({
+      const emailAddress = await user?.createEmailAddress({
         email: newEmail
       });
       
-      // Send verification email - using the correct method
-      await user?.createEmailAddressVerification({
-        strategy: "email_code"
-      });
-      
-      toast.success("Verification email sent to your new address");
-      setNewEmail("");
+      // Request verification using the proper method
+      if (emailAddress) {
+        await emailAddress.prepareVerification({
+          strategy: "email_code"
+        });
+        
+        toast.success("Verification email sent to your new address");
+        setNewEmail("");
+      }
     } catch (error: any) {
       console.error("Error updating email:", error);
       toast.error(error.errors?.[0]?.message || "Failed to update email");
