@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 
 interface AudioWaveformProps {
@@ -21,15 +22,19 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
     const initAudio = () => {
       // Create audio context
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      audioContextRef.current = new AudioContext();
-      analyserRef.current = audioContextRef.current.createAnalyser();
       
-      // Configure analyzer for FFT display
-      analyserRef.current.fftSize = 2048;
-      analyserRef.current.smoothingTimeConstant = 0.8;
+      // Check if we already have an audio context
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext();
+        analyserRef.current = audioContextRef.current.createAnalyser();
+        
+        // Configure analyzer for FFT display
+        analyserRef.current.fftSize = 2048;
+        analyserRef.current.smoothingTimeConstant = 0.8;
+      }
 
-      // Connect audio element to analyzer
-      if (audioRef.current) {
+      // Connect audio element to analyzer if not already connected
+      if (audioRef.current && !sourceRef.current) {
         sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
         sourceRef.current.connect(analyserRef.current);
         analyserRef.current.connect(audioContextRef.current.destination);
@@ -48,6 +53,8 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      // Reset source reference so it can be recreated for new audio elements
+      sourceRef.current = null;
     };
   }, [audioSrc]);
 
@@ -124,6 +131,28 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
         // Only display up to 20kHz
         if (x > canvas.width) break;
       }
+      
+      // Draw frequency axis labels
+      ctx.fillStyle = 'rgb(100, 116, 139)'; // slate-500 for readable labels
+      ctx.font = '10px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      
+      // Add frequency markers as requested
+      const markers = [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+      
+      markers.forEach(freq => {
+        if (freq <= nyquist) {
+          // Calculate x position as fraction of visible spectrum (0-20kHz)
+          const xPos = (freq / 20000) * canvas.width;
+          
+          // Draw small tick mark
+          ctx.fillRect(xPos, canvas.height - 12, 1, 4);
+          
+          // Draw frequency label
+          const label = freq >= 1000 ? `${freq/1000}kHz` : `${freq}Hz`;
+          ctx.fillText(label, xPos, canvas.height - 2);
+        }
+      });
     };
 
     if (isPlaying) {

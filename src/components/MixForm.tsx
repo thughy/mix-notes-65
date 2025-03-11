@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -50,6 +49,7 @@ const MixForm = ({
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioSrc, setAudioSrc] = useState<string | undefined>(initialData.audioSrc);
   const [youtubeUrl, setYoutubeUrl] = useState(initialData.youtubeUrl || '');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRatingChange = (category: RatingCategory, value: number) => {
     setRatings(prev => ({
@@ -67,15 +67,17 @@ const MixForm = ({
     }
   };
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   const getYoutubeEmbedUrl = (url: string) => {
     if (!url) return '';
     
-    // If URL already has 'embed', return it
     if (url.includes('embed')) {
       return url;
     }
     
-    // Extract video ID from various YouTube URL formats
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     
@@ -255,13 +257,19 @@ const MixForm = ({
             <Label htmlFor="audioUpload">Upload Mix Recording</Label>
             <div className="flex items-center space-x-2">
               <Input 
+                ref={fileInputRef}
                 id="audioUpload" 
                 type="file" 
                 accept="audio/*"
                 onChange={handleAudioUpload}
+                className="hidden"
+              />
+              <Input 
+                readOnly
+                value={audioFile?.name || "No file selected"}
                 className="flex-1"
               />
-              <Button type="button" size="sm" variant="outline">
+              <Button type="button" size="sm" variant="outline" onClick={triggerFileInput}>
                 <Upload className="h-4 w-4 mr-1" /> Upload
               </Button>
             </div>
