@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
-import AudioWaveform from '@/components/AudioVisualizer/AudioWaveform';
 
 interface AudioSectionProps {
   audioFile: File | null;
@@ -64,9 +63,9 @@ const AudioSection = ({
               <Upload className="h-4 w-4 mr-1" /> Upload
             </Button>
           </div>
-          {audioSrc && (
-            <div className="mt-4 rounded-md overflow-hidden">
-              <AudioWaveform audioSrc={audioSrc} />
+          {audioFile && (
+            <div className="text-sm text-slate-500 mt-2">
+              File uploaded: {audioFile.name} ({(audioFile.size / (1024 * 1024)).toFixed(2)} MB)
             </div>
           )}
         </div>
