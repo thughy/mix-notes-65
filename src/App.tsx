@@ -12,6 +12,7 @@ import EditMixEntry from "./pages/EditMixEntry";
 import CompareMixes from "./pages/CompareMixes";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,10 @@ const App = () => (
           <Route 
             path="/progress" 
             element={<ProtectedRoute><CompareMixes /></ProtectedRoute>} 
+          />
+          <Route 
+            path="/account" 
+            element={<ProtectedRoute><Account /></ProtectedRoute>} 
           />
           
           {/* Catch-all route */}

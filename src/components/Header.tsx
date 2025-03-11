@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, SlidersVertical, Settings, Home, Plus, GitCompare, LogOut } from 'lucide-react';
+import { Menu, X, SlidersVertical, Settings, Home, Plus, GitCompare, LogOut, User } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { useUser, useClerk } from '@clerk/clerk-react';
@@ -107,6 +107,14 @@ const Header = () => {
                       <span>Compare Mixes</span>
                     </Link>
                     <Link 
+                      to="/account" 
+                      className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <User className="h-5 w-5 text-blue-600" />
+                      <span>Account</span>
+                    </Link>
+                    <Link 
                       to="/settings" 
                       className="flex items-center gap-2 px-4 py-3 rounded-md text-lg font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors w-full max-w-xs"
                       onClick={() => setIsMenuOpen(false)}
@@ -153,6 +161,12 @@ const Header = () => {
                   className="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                 >
                   Compare Mixes
+                </Link>
+                <Link 
+                  to="/account" 
+                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                >
+                  Account
                 </Link>
                 <Button variant="default" className="ml-2" size="sm" onClick={() => navigate('/new')}>
                   <Plus className="mr-1 h-4 w-4" />
