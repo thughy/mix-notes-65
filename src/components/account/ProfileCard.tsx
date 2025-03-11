@@ -1,14 +1,14 @@
 
 import { useState } from "react";
-import { User, Camera, Loader2 } from "lucide-react";
+import { User as UserIcon, Camera, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { UserResource } from "@clerk/clerk-react";
+import { User } from "@clerk/clerk-react";
 
 interface ProfileCardProps {
-  user: UserResource;
+  user: User;
   onSignOut: () => Promise<void>;
 }
 
@@ -51,7 +51,7 @@ export function ProfileCard({ user, onSignOut }: ProfileCardProps) {
             />
           ) : (
             <div className="rounded-full w-full h-full bg-blue-100 flex items-center justify-center">
-              <User className="h-12 w-12 text-blue-500" />
+              <UserIcon className="h-12 w-12 text-blue-500" />
             </div>
           )}
         </div>
