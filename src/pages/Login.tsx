@@ -14,6 +14,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,6 +42,32 @@ export default function Login() {
       toast.error(err.errors?.[0]?.message || "Login failed. Please try again.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (!isLoaded || !email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+    
+    try {
+      setIsResettingPassword(true);
+      
+      await signIn.create({
+        identifier: email,
+        strategy: "reset_password_email_code",
+      });
+      
+      toast.success("Password reset email sent. Please check your inbox.");
+      
+    } catch (err: any) {
+      console.error("Password reset error:", err);
+      toast.error(err.errors?.[0]?.message || "Failed to send reset email. Please try again.");
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -83,7 +110,17 @@ export default function Login() {
                 </div>
 
                 <div>
-                  <Label htmlFor="password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <button
+                      type="button"
+                      onClick={handleResetPassword}
+                      disabled={isResettingPassword}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:underline transition ease-in-out duration-150"
+                    >
+                      {isResettingPassword ? "Sending..." : "Forgot password?"}
+                    </button>
+                  </div>
                   <div className="mt-1">
                     <Input
                       id="password"
