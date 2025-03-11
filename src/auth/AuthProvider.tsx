@@ -2,15 +2,16 @@
 import { ClerkProvider } from "@clerk/clerk-react";
 import { ReactNode } from "react";
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+// We use the publishable key
+const PUBLISHABLE_KEY = "pk_test_YWRhcHRlZC1wZWxpY2FuLTEwLmNsZXJrLmFjY291bnRzLmRldiQ";
 
 if (!PUBLISHABLE_KEY) {
-  console.error("Missing VITE_CLERK_PUBLISHABLE_KEY environment variable");
+  console.error("Missing Clerk publishable key");
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY || "pk_test_placeholder-key"}>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       {children}
     </ClerkProvider>
   );

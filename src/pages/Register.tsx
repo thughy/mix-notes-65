@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useSignUp } from "@clerk/clerk-react";
-import { SlidersVertical } from 'lucide-react';
+import { SlidersVertical, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -137,7 +137,14 @@ export default function Register() {
                       className="w-full"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Creating account..." : "Create account"}
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating account...
+                        </>
+                      ) : (
+                        "Create account"
+                      )}
                     </Button>
                   </div>
                 </form>
@@ -164,7 +171,14 @@ export default function Register() {
                       className="w-full"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Verifying..." : "Verify email"}
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        "Verify email"
+                      )}
                     </Button>
                   </div>
                 </form>

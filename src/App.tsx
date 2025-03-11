@@ -21,7 +21,14 @@ const Root = () => {
   const { isSignedIn, isLoaded } = useUser();
   
   if (!isLoaded) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
   
   if (!isSignedIn) {
@@ -44,21 +51,18 @@ const App = () => (
           
           {/* Protected routes */}
           <Route path="/" element={<Root />} />
-          <Route path="/new" element={
-            <ProtectedRoute>
-              <NewMixEntry />
-            </ProtectedRoute>
-          } />
-          <Route path="/edit/:id" element={
-            <ProtectedRoute>
-              <EditMixEntry />
-            </ProtectedRoute>
-          } />
-          <Route path="/progress" element={
-            <ProtectedRoute>
-              <CompareMixes />
-            </ProtectedRoute>
-          } />
+          <Route 
+            path="/new" 
+            element={<ProtectedRoute><NewMixEntry /></ProtectedRoute>} 
+          />
+          <Route 
+            path="/edit/:id" 
+            element={<ProtectedRoute><EditMixEntry /></ProtectedRoute>} 
+          />
+          <Route 
+            path="/progress" 
+            element={<ProtectedRoute><CompareMixes /></ProtectedRoute>} 
+          />
           
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
