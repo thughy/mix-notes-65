@@ -12,8 +12,10 @@ export const createAnalyzer = (audioContext: AudioContext): AnalyserNode => {
   const analyzer = audioContext.createAnalyser();
   
   // Configure analyzer for FFT display
-  analyzer.fftSize = 2048;
-  analyzer.smoothingTimeConstant = 0.8;
+  analyzer.fftSize = 2048; // Matches the displayed FFT size in the screenshot
+  analyzer.smoothingTimeConstant = 0.85; // Smoother visualizations
+  analyzer.minDecibels = -100; // Lower dB threshold for better visualization
+  analyzer.maxDecibels = -20; // Upper dB threshold to match scale in screenshot
   
   return analyzer;
 };

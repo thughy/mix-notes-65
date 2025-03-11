@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { createAudioContext, createAnalyzer, connectAudioElementToAnalyzer } from '@/utils/audioContext';
 
@@ -26,6 +27,7 @@ export const useAudioVisualization = ({
   const fadeTimeoutRef = useRef<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [opacity, setOpacity] = useState(1);
+  const peakFrequencyRef = useRef<number>(0);
 
   // Initialize audio context and analyzer
   useEffect(() => {
@@ -108,6 +110,25 @@ export const useAudioVisualization = ({
     };
   }, [isPlaying]);
 
+  // Find the peak frequency
+  const findPeakFrequency = (dataArray: Uint8Array, sampleRate: number): number => {
+    let maxValue = 0;
+    let maxIndex = 0;
+    const bufferLength = dataArray.length;
+    
+    for (let i = 0; i < bufferLength; i++) {
+      if (dataArray[i] > maxValue) {
+        maxValue = dataArray[i];
+        maxIndex = i;
+      }
+    }
+    
+    // Convert index to frequency
+    const nyquist = sampleRate / 2;
+    const frequencyBinWidth = nyquist / bufferLength;
+    return Math.round(maxIndex * frequencyBinWidth);
+  };
+
   // Draw FFT spectrum on canvas
   useEffect(() => {
     if (!canvasRef.current || !analyserRef.current) return;
@@ -128,6 +149,11 @@ export const useAudioVisualization = ({
       
       // Get frequency data
       analyserRef.current!.getByteFrequencyData(dataArray);
+      
+      // Find peak frequency
+      if (audioContextRef.current) {
+        peakFrequencyRef.current = findPeakFrequency(dataArray, audioContextRef.current.sampleRate);
+      }
       
       // Add current data to history
       dataHistoryRef.current.push(new Uint8Array(dataArray));
@@ -150,15 +176,38 @@ export const useAudioVisualization = ({
       }
       
       // Clear canvas
-      ctx.fillStyle = 'rgb(248, 250, 252)'; // Use slate-50 for background
+      ctx.fillStyle = '#1e293b'; // Dark slate background
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw grid lines
+      ctx.strokeStyle = '#334155'; // Slate-700
+      ctx.lineWidth = 1;
+      
+      // Horizontal grid lines (at -20dB, -40dB, -60dB, -80dB)
+      for (let i = 1; i < 5; i++) {
+        const y = (i * canvas.height) / 5;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      
+      // Vertical grid lines (at frequency markers)
+      const markers = [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+      markers.forEach(freq => {
+        const xPos = getXForFrequency(freq);
+        ctx.beginPath();
+        ctx.moveTo(xPos, 0);
+        ctx.lineTo(xPos, canvas.height);
+        ctx.stroke();
+      });
       
       // Draw FFT spectrum with current opacity
       ctx.globalAlpha = opacity;
       
-      // Calculate logarithmic frequency scale from 1Hz to 20kHz
+      // Calculate logarithmic frequency scale from 20Hz to 20kHz
       const nyquist = audioContextRef.current!.sampleRate / 2;
-      const minFreq = 1; // 1Hz
+      const minFreq = 20; // 20Hz
       const maxFreq = 20000; // 20kHz
       
       const getXForFrequency = (freq: number) => {
@@ -174,11 +223,14 @@ export const useAudioVisualization = ({
         return Math.round((freq / nyquist) * (bufferLength - 1));
       };
       
-      // Draw frequency bands using logarithmic scale
+      // Draw filled area using path
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height); // Start at bottom left
+      
+      // Generate logarithmically spaced frequency points
       const frequencies: number[] = [];
       let freq = minFreq;
       
-      // Generate logarithmically spaced frequency points
       while (freq <= maxFreq) {
         frequencies.push(freq);
         // Increase by smaller steps at lower frequencies for better resolution
@@ -193,59 +245,80 @@ export const useAudioVisualization = ({
         }
       }
       
-      // Draw each frequency band
-      for (let i = 0; i < frequencies.length - 1; i++) {
-        const f1 = frequencies[i];
-        const f2 = frequencies[i + 1];
+      // Draw the path for the filled area
+      frequencies.forEach((f, i) => {
+        const x = getXForFrequency(f);
+        const dataIndex = getDataIndexForFrequency(f);
         
-        const x1 = getXForFrequency(f1);
-        const x2 = getXForFrequency(f2);
-        const width = x2 - x1;
-        
-        // Get data for this frequency
-        const dataIndex = getDataIndexForFrequency(f1);
-        if (dataIndex >= averagedData.length) continue;
+        if (dataIndex >= averagedData.length) return;
         
         const value = averagedData[dataIndex];
-        const barHeight = (value / 255) * canvas.height;
+        // Invert the value since -80dB is at the bottom
+        const y = canvas.height - (value / 255) * canvas.height;
         
-        // Create gradient color based on frequency and amplitude
-        const gradient = ctx.createLinearGradient(x1, canvas.height, x1, canvas.height - barHeight);
-        gradient.addColorStop(0, `rgb(46, 150, 255)`); // Blue-500
-        gradient.addColorStop(1, `rgb(184, 219, 255)`); // Blue-200
-        
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x1, canvas.height - barHeight, width, barHeight);
-      }
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
       
-      // Reset opacity for labels
+      // Complete the path by going to the bottom right and back to bottom left
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.lineTo(0, canvas.height);
+      
+      // Fill with a gradient from red to darker red
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, 'rgba(220, 38, 38, 0.9)'); // Red-600
+      gradient.addColorStop(1, 'rgba(185, 28, 28, 0.7)'); // Red-700
+      
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      
+      // Draw a white line for the outline of the spectrum
+      ctx.beginPath();
+      frequencies.forEach((f, i) => {
+        const x = getXForFrequency(f);
+        const dataIndex = getDataIndexForFrequency(f);
+        
+        if (dataIndex >= averagedData.length) return;
+        
+        const value = averagedData[dataIndex];
+        const y = canvas.height - (value / 255) * canvas.height;
+        
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
+      // Draw peak frequency display
+      ctx.globalAlpha = 1; // Ensure text is fully opaque
+      ctx.fillStyle = '#f8fafc'; // Slate-50
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Peak: ${peakFrequencyRef.current}Hz`, 10, 20);
+      
+      // Reset opacity for frequency labels
       ctx.globalAlpha = 1;
       
-      // Draw frequency axis labels
-      ctx.fillStyle = 'rgb(100, 116, 139)'; // slate-500 for readable labels
-      ctx.font = '10px system-ui, sans-serif';
+      // Draw frequency axis labels at the bottom
+      ctx.fillStyle = '#94a3b8'; // Slate-400
+      ctx.font = '11px system-ui, sans-serif';
       ctx.textAlign = 'center';
       
       // Add frequency markers
-      const markers = [1, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+      const frequencyLabels = [50, 100, 200, 500, '1k', '2k', '5k', '10k', '20k'];
+      const frequencyValues = [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
       
-      markers.forEach(freq => {
+      frequencyValues.forEach((freq, i) => {
         const xPos = getXForFrequency(freq);
-        
-        // Draw small tick mark
-        ctx.fillRect(xPos, canvas.height - 12, 1, 4);
-        
-        // Format label text
-        let label;
-        if (freq >= 1000) {
-          label = `${freq/1000}kHz`;
-        } else if (freq === 1) {
-          label = `${freq}Hz`;
-        } else {
-          label = `${freq}Hz`;
-        }
-        
-        ctx.fillText(label, xPos, canvas.height - 2);
+        ctx.fillText(frequencyLabels[i].toString(), xPos, canvas.height - 5);
       });
     };
 

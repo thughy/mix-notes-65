@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -64,7 +65,7 @@ const AudioSection = ({
             </Button>
           </div>
           {audioSrc && (
-            <div className="mt-4 bg-slate-100 p-4 rounded-md">
+            <div className="mt-4 rounded-md overflow-hidden">
               <AudioWaveform audioSrc={audioSrc} />
             </div>
           )}

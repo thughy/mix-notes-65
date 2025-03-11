@@ -18,12 +18,20 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
 
   return (
     <div className="space-y-4">
-      <canvas 
-        ref={canvasRef} 
-        className="w-full h-60 bg-slate-50 rounded-md border border-slate-200"
-        width={1200}
-        height={300}
-      />
+      <div className="relative">
+        <canvas 
+          ref={canvasRef} 
+          className="w-full h-60 bg-slate-900 rounded-md border border-slate-700"
+          width={1200}
+          height={300}
+        />
+        <div className="absolute top-2 left-2 text-slate-300 text-xs">
+          <div>-20 dB</div>
+          <div className="mt-4">-40 dB</div>
+          <div className="mt-4">-60 dB</div>
+          <div className="mt-4">-80 dB</div>
+        </div>
+      </div>
       <div className="flex items-center justify-center">
         <audio 
           ref={audioRef} 
