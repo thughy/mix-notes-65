@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Loader2, User, Mail, KeyRound, Camera, ArrowLeft } from "lucide-react";
+import { Loader2, User, Mail, KeyRound, Camera, ArrowLeft, UserCircle } from "lucide-react";
 import Header from "@/components/Header";
 
 export default function Account() {
@@ -19,10 +19,13 @@ export default function Account() {
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isUpdatingImage, setIsUpdatingImage] = useState(false);
+  const [isUpdatingName, setIsUpdatingName] = useState(false);
   
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [firstName, setFirstName] = useState(user?.firstName || "");
+  const [lastName, setLastName] = useState(user?.lastName || "");
   
   if (!isLoaded) {
     return (
@@ -52,7 +55,7 @@ export default function Account() {
       });
       
       // Send verification email
-      await user?.prepareEmailAddressVerification({
+      await user?.createEmailAddressVerification({
         strategy: "email_code"
       });
       
@@ -115,6 +118,27 @@ export default function Account() {
       toast.error(error.errors?.[0]?.message || "Failed to upload profile picture");
     } finally {
       setIsUpdatingImage(false);
+    }
+  };
+
+  const handleNameUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      setIsUpdatingName(true);
+      
+      // Update first and last name
+      await user?.update({
+        firstName,
+        lastName,
+      });
+      
+      toast.success("Name updated successfully");
+    } catch (error: any) {
+      console.error("Error updating name:", error);
+      toast.error(error.errors?.[0]?.message || "Failed to update name");
+    } finally {
+      setIsUpdatingName(false);
     }
   };
 
@@ -214,6 +238,54 @@ export default function Account() {
           
           {/* Settings Forms */}
           <div className="w-full md:w-2/3 space-y-6">
+            {/* Name Update Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCircle className="h-5 w-5" />
+                  Update Name
+                </CardTitle>
+                <CardDescription>
+                  Change your display name
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleNameUpdate} className="space-y-4">
+                  <div>
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input 
+                      id="firstName" 
+                      value={firstName} 
+                      onChange={(e) => setFirstName(e.target.value)} 
+                      placeholder="Enter first name" 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input 
+                      id="lastName" 
+                      value={lastName} 
+                      onChange={(e) => setLastName(e.target.value)} 
+                      placeholder="Enter last name" 
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={isUpdatingName}
+                  >
+                    {isUpdatingName ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update Name"
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+            
             {/* Email Update Form */}
             <Card>
               <CardHeader>
