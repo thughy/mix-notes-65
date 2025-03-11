@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { User } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 
 interface PasswordUpdateFormProps {
-  user: User;
+  user: ReturnType<typeof useUser>["user"];
 }
 
 export function PasswordUpdateForm({ user }: PasswordUpdateFormProps) {

@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 
 interface ProfileCardProps {
-  user: User;
+  user: ReturnType<typeof useUser>["user"];
   onSignOut: () => Promise<void>;
 }
 

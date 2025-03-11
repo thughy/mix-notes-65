@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { User } from "@clerk/clerk-react";
+import { useUser } from "@clerk/clerk-react";
 
 interface NameUpdateFormProps {
-  user: User;
+  user: ReturnType<typeof useUser>["user"];
 }
 
 export function NameUpdateForm({ user }: NameUpdateFormProps) {
@@ -23,11 +23,14 @@ export function NameUpdateForm({ user }: NameUpdateFormProps) {
     try {
       setIsUpdatingName(true);
       
-      // Fix: Use the correct property names according to Clerk's API
-      await user?.update({
-        firstName: firstName,
-        lastName: lastName,
-      });
+      // According to Clerk's API documentation, we should use "first_name" and "last_name" for the raw API calls
+      // But for the user.update method, we need to use "firstName" and "lastName"
+      if (user) {
+        await user.update({
+          firstName,
+          lastName,
+        });
+      }
       
       toast.success("Name updated successfully");
     } catch (error: any) {
