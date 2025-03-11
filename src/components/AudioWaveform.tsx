@@ -13,7 +13,9 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const dataHistoryRef = useRef<Array<Uint8Array>>([]);
+  const fadeTimeoutRef = useRef<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [opacity, setOpacity] = useState(1);
 
   // Initialize audio context and analyzer
   useEffect(() => {
@@ -53,10 +55,53 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      if (fadeTimeoutRef.current) {
+        clearTimeout(fadeTimeoutRef.current);
+      }
       // Reset source reference so it can be recreated for new audio elements
       sourceRef.current = null;
     };
   }, [audioSrc]);
+
+  // Handle fade effect when paused/played
+  useEffect(() => {
+    if (isPlaying) {
+      // Fade in when playing starts
+      setOpacity(1);
+      if (fadeTimeoutRef.current) {
+        clearTimeout(fadeTimeoutRef.current);
+        fadeTimeoutRef.current = null;
+      }
+    } else {
+      // Fade out over 2 seconds when paused
+      const startTime = Date.now();
+      const duration = 2000; // 2 seconds
+      const initialOpacity = 1;
+      const targetOpacity = 0;
+      
+      const fadeOut = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const currentOpacity = initialOpacity - progress * (initialOpacity - targetOpacity);
+        
+        setOpacity(currentOpacity);
+        
+        if (progress < 1) {
+          fadeTimeoutRef.current = window.setTimeout(fadeOut, 16); // ~60fps
+        } else {
+          fadeTimeoutRef.current = null;
+        }
+      };
+      
+      fadeOut();
+    }
+    
+    return () => {
+      if (fadeTimeoutRef.current) {
+        clearTimeout(fadeTimeoutRef.current);
+      }
+    };
+  }, [isPlaying]);
 
   // Draw FFT spectrum on canvas
   useEffect(() => {
@@ -69,8 +114,8 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
     const bufferLength = analyserRef.current.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     
-    // Initialize history array for 5-second averaging (assuming 60fps)
-    const historyLength = 300; // 5 seconds at 60fps
+    // Initialize history array for 2-second averaging (assuming 60fps)
+    const historyLength = 120; // 2 seconds at 60fps
     dataHistoryRef.current = [];
 
     const draw = () => {
@@ -103,7 +148,9 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
       ctx.fillStyle = 'rgb(248, 250, 252)'; // Use slate-50 for background
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Draw FFT spectrum
+      // Draw FFT spectrum with current opacity
+      ctx.globalAlpha = opacity;
+      
       const barWidth = (canvas.width / bufferLength) * 2.5;
       let x = 0;
       
@@ -131,6 +178,9 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
         // Only display up to 20kHz
         if (x > canvas.width) break;
       }
+      
+      // Reset opacity for labels
+      ctx.globalAlpha = 1;
       
       // Draw frequency axis labels
       ctx.fillStyle = 'rgb(100, 116, 139)'; // slate-500 for readable labels
@@ -164,15 +214,15 @@ const AudioWaveform = ({ audioSrc }: AudioWaveformProps) => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isPlaying]);
+  }, [isPlaying, opacity]);
 
   return (
     <div className="space-y-4">
       <canvas 
         ref={canvasRef} 
-        className="w-full h-32 bg-slate-50 rounded-md border border-slate-200"
-        width={1000}
-        height={200}
+        className="w-full h-48 bg-slate-50 rounded-md border border-slate-200"
+        width={1200}
+        height={300}
       />
       <div className="flex items-center justify-center">
         <audio 
